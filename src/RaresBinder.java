@@ -6,11 +6,11 @@ public class RaresBinder extends SellableBinder {
     }
 
     @Override
-    public void addCard(Card card) {
+    public boolean addCard(Card card) {
         if (card.getRarity() != CardRarity.RARE && card.getRarity() != CardRarity.LEGENDARY) {
-            throw new IllegalArgumentException("Rares binder can only contain rare/legendary cards");
+            return false; // Fail silently (Controller will show error)
         }
-        super.addCard(card);
+        return super.addCard(card); // Parent handles capacity checks
     }
 
     @Override

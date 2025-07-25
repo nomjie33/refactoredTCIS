@@ -206,27 +206,22 @@ public class TradingCardInventorySystemController {
             switch(choice) {
                 case 1 -> view.displayBinderCards(binder.getCards());
                 case 2 -> {
-                    if(binder.getCardsCount() < Binder.MAX_CARD_COUNT){
+                    if (binder.getCardsCount() < Binder.MAX_CARD_COUNT) {
                         List<Card> collection = model.getCardCollection();
-
-                        if(view.displayCollection(collection)) {
-                            System.out.println("Enter num not in list to go back.");
+                        if (view.displayCollection(collection)) {
                             int index = view.getCardChoice();
-
-                            // Returns to Manage Binders menu if index is invalid
-                            if(index >= 0 && index < collection.size()) {
+                            if (index >= 0 && index < collection.size()) {
                                 Card selected = model.getCardFromCollection(index);
-
-                                if(model.addCardToBinder(binder, selected)) {
-                                    System.out.println("Card added to binder.");
+                                if (!model.addCardToBinder(binder, selected)) {
+                                    // Show specific error from model
+                                    view.displayError("Cannot add card - invalid type or count");
                                 } else {
-                                    view.displayError("Illegal card cannot be added");
+                                    System.out.println("Card added successfully!");
                                 }
                             }
                         }
-                    }
-                    else {
-                        System.out.println("Binder is full. Please select a different binder");
+                    } else {
+                        System.out.println("Binder is full.");
                     }
                 }
                 case 3 -> {
@@ -546,7 +541,7 @@ public class TradingCardInventorySystemController {
 
     private void sellBinder(Binder binder) {
         if (!model.isSellableBinder(binder)) {
-            view.displayError("This binder type cannot be sold");
+            view.displayError("This binder cannot be sold");
             return;
         }
 

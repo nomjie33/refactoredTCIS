@@ -212,20 +212,20 @@ public class TradingCardInventorySystemModel {
      * @return true if card was added successfully, false otherwise.
      */
     public boolean addCardToBinder(Binder binder, Card card) {
-        if(card.getCount() <= 0) {
-            System.err.println("Card count = 0, cannot add card.");
+        // Existing count check
+        if (card.getCount() <= 0) {
             return false;
         }
 
-        if(cardCollection.get(cardCollection.indexOf(card)).getCount() > 0) {
-            cardCollection.get(cardCollection.indexOf(card)).setCount
-                    (cardCollection.get(cardCollection.indexOf(card)).getCount() - 1);
-            binder.addCard(card);
-
-            return true;
-        } else {
+        // Delegate validation to binder subclass
+        if (!binder.addCard(card)) {
             return false;
         }
+
+        // Deduct from collection
+        cardCollection.get(cardCollection.indexOf(card)).setCount(
+                cardCollection.get(cardCollection.indexOf(card)).getCount() - 1);
+        return true;
     }
     /**
      * Removes card from the specified binder and returns it to the collection.
@@ -421,7 +421,7 @@ public class TradingCardInventorySystemModel {
 
     // Add method to check if binder is sellable
     public boolean isSellableBinder(Binder binder) {
-        return binder instanceof SellableBinder;
+        return (binder instanceof SellableBinder && binder.calculatePrice().compareTo(BigDecimal.ZERO) >= 0);
     }
 
     // Add method to sell binder

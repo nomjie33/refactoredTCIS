@@ -7,8 +7,7 @@ public class PauperBinder extends SellableBinder {
 
     @Override
     public boolean addCard(Card card) {
-        if (card.getRarity() != CardRarity.COMMON &&
-                card.getRarity() != CardRarity.UNCOMMON) {
+        if (card.getRarity() != CardRarity.COMMON && card.getRarity() != CardRarity.UNCOMMON) {
             return false; // Fail silently (Controller will show error)
         }
         return super.addCard(card); // Parent handles capacity checks

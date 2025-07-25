@@ -8,13 +8,13 @@ public class LuxuryBinder extends SellableBinder {
     }
 
     @Override
-    public void addCard(Card card) {
-        if (card.getVariant() == CardVariant.NORMAL ||
-                (card.getRarity() != CardRarity.RARE && card.getRarity() != CardRarity.LEGENDARY)) {
-            throw new IllegalArgumentException("Luxury binder can only contain non-normal rare/legendary cards");
+    public boolean addCard(Card card) {
+        if (card.getVariant() == CardVariant.NORMAL ||(card.getRarity() != CardRarity.RARE && card.getRarity() != CardRarity.LEGENDARY)) {
+            return false; // Fail silently (Controller will show error)
         }
-        super.addCard(card);
+        return super.addCard(card); // Parent handles capacity checks
     }
+
 
     public boolean setCustomPrice(BigDecimal price) {
         BigDecimal minPrice = getCards().stream()
