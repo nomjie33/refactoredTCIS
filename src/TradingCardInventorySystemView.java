@@ -1,4 +1,5 @@
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -519,7 +520,7 @@ public class TradingCardInventorySystemView {
     /**
      * Displays the binder type selection menu with subclass-specific descriptions.
      */
-    public void displayBinderTypeMenu() {
+    /*public void displayBinderTypeMenu() {
         System.out.println("\n=== Binder Type Selection ===");
         System.out.println("1. Non-curated Binder");
         System.out.println("   - Can hold any card type");
@@ -538,5 +539,16 @@ public class TradingCardInventorySystemView {
         System.out.println("   - Cannot be sold");
         System.out.println("0. Cancel and return to main menu");
         System.out.print("\nEnter your choice: ");
+    }*/
+
+    public BigDecimal promptForPrice(String message) {
+        while (true) {
+            System.out.print(message + ": ");
+            try {
+                return new BigDecimal(sc.nextLine()).setScale(2, RoundingMode.HALF_UP);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid price format. Example: 29.99");
+            }
+        }
     }
 }

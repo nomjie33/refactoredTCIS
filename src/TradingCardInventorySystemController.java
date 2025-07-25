@@ -1,4 +1,5 @@
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 /**
      * Controller class for the Trading Card Inventory System.
@@ -147,7 +148,7 @@ public class TradingCardInventorySystemController {
             return;
         }
 
-        view.displayBinderTypeMenu();
+        //view.displayBinderTypeMenu();
         int typeChoice = view.promptForBinderType();
 
         if (typeChoice < 1 || typeChoice > 5) {
@@ -545,13 +546,37 @@ public class TradingCardInventorySystemController {
             return;
         }
 
-        BigDecimal price = ((SellableBinder)binder).calculatePrice();
-        System.out.printf("Sell '%s' for $%.2f?%n", binder.getName(), price);
+        SellableBinder sellable = (SellableBinder) binder;
+
+        // Special handling for Luxury Binder pricing
+        if (binder instanceof LuxuryBinder) {
+            LuxuryBinder luxury = (LuxuryBinder) binder;
+
+            // Show current pricing
+            BigDecimal currentValue = luxury.calculateBaseValue();
+            System.out.printf("Current card value: $%.2f%n", currentValue);
+
+            // Prompt for custom price
+            if (view.confirmAction("Set custom price?")) {
+                BigDecimal customPrice = view.promptForPrice("Enter custom price (minimum $" + currentValue + ")");
+
+                if (!luxury.setCustomPrice(customPrice)) {
+                    view.displayError("Price must be ≥ $" + currentValue);
+                    return;
+                }
+            }
+        }
+
+        BigDecimal price = sellable.calculatePrice();
+        System.out.printf("Sell '%s' for $%.2f (includes 10%% fee)?%n",
+                binder.getName(), price);
 
         if (view.confirmAction("Confirm sale")) {
             boolean success = model.sellBinder(binder);
             if (success) {
                 System.out.println("Binder sold successfully!");
+                System.out.printf("Earned: $%.2f (including $%.2f handling fee)%n",
+                        price, price.subtract(price.divide(new BigDecimal("1.10"), 2, RoundingMode.HALF_UP)));
             } else {
                 view.displayError("Failed to complete sale");
             }
