@@ -51,6 +51,8 @@ public class Binder extends CardHolder {
     }
 
     public boolean isSellable() {
-        return this instanceof SellableBinder;
+        return (this instanceof PauperBinder) ||
+                (this instanceof RaresBinder) ||
+                (this instanceof LuxuryBinder);
     }
 }

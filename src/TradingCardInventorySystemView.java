@@ -292,13 +292,8 @@ public class TradingCardInventorySystemView {
         System.out.println("1. View Cards");
         System.out.println("2. Add Card");
         System.out.println("3. Remove Card");
-        System.out.println("4. Trade Card");
-        if(isSellable) {
-            System.out.println("5. Sell Binder");
-            System.out.println("6. Delete Binder");
-        } else {
-            System.out.println("5. Delete Binder");
-        }
+        System.out.println("4. " + (isSellable ? "Sell Binder" : "Trade Card"));
+        System.out.println("5. Delete Binder");
         System.out.println("0. Back\n");
     }
     /**
@@ -392,12 +387,18 @@ public class TradingCardInventorySystemView {
         System.out.println((deckNames.size() + 1) + ". Create a new Deck");
         System.out.println("0. Return to Main Menu\n");
     }
-    public void displayManageSingleDeckMenu(String deckName) {
+    public void displayManageSingleDeckMenu(String deckName, boolean isSellable) {
         System.out.println("\n=== Deck: " + deckName + " ===");
         System.out.println("1. View Cards");
         System.out.println("2. Add Card");
         System.out.println("3. Remove Card");
         System.out.println("4. Delete Deck");
+
+        // Only show option 5 if deck is sellable
+        if (isSellable) {
+            System.out.println("5. Sell Deck");
+        }
+
         System.out.println("0. Back\n");
     }
     /**
@@ -517,29 +518,19 @@ public class TradingCardInventorySystemView {
         }
     }
 
-    /**
-     * Displays the binder type selection menu with subclass-specific descriptions.
-     */
-    /*public void displayBinderTypeMenu() {
-        System.out.println("\n=== Binder Type Selection ===");
-        System.out.println("1. Non-curated Binder");
-        System.out.println("   - Can hold any card type");
-        System.out.println("   - Cannot be sold");
-        System.out.println("2. Pauper Binder");
-        System.out.println("   - Only Common/Uncommon cards");
-        System.out.println("   - No handling tax when sold");
-        System.out.println("3. Rares Binder");
-        System.out.println("   - Only Rare/Legendary cards");
-        System.out.println("   - +10% handling tax when sold");
-        System.out.println("4. Luxury Binder");
-        System.out.println("   - Only non-normal Rare/Legendary (Extended/Full/Alt Art)");
-        System.out.println("   - Custom pricing with +10% tax");
-        System.out.println("5. Collector Binder");
-        System.out.println("   - Only non-normal Rare/Legendary cards");
-        System.out.println("   - Cannot be sold");
-        System.out.println("0. Cancel and return to main menu");
-        System.out.print("\nEnter your choice: ");
-    }*/
+    /// Add deck type selection
+    public int promptForDeckType() {
+        System.out.println("\nSelect deck type:");
+        System.out.println("1. Normal Deck (cannot be sold)");
+        System.out.println("2. Sellable Deck (can be sold for card value)");
+        System.out.print("Enter choice: ");
+
+        try {
+            return Integer.parseInt(sc.nextLine());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
 
     public BigDecimal promptForPrice(String message) {
         while (true) {

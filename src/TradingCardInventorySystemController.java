@@ -197,16 +197,13 @@ public class TradingCardInventorySystemController {
         boolean managing = true;
 
         while(managing) {
-            view.displayManageSingleBinderMenu(
-                    binder.getName(),
-                    model.isSellableBinder(binder)
-            );
+            view.displayManageSingleBinderMenu(binder.getName(), model.isSellableBinder(binder));
 
             int choice = view.getMenuChoice();
 
             switch(choice) {
                 case 1 -> view.displayBinderCards(binder.getCards());
-                case 2 -> {
+                case 2 -> {  // Add Card
                     if (binder.getCardsCount() < Binder.MAX_CARD_COUNT) {
                         List<Card> collection = model.getCardCollection();
                         if (view.displayCollection(collection)) {
@@ -214,7 +211,6 @@ public class TradingCardInventorySystemController {
                             if (index >= 0 && index < collection.size()) {
                                 Card selected = model.getCardFromCollection(index);
                                 if (!model.addCardToBinder(binder, selected)) {
-                                    // Show specific error from model
                                     view.displayError("Cannot add card - invalid type or count");
                                 } else {
                                     System.out.println("Card added successfully!");
@@ -225,62 +221,37 @@ public class TradingCardInventorySystemController {
                         System.out.println("Binder is full.");
                     }
                 }
-                case 3 -> {
+                case 3 -> {  // Remove Card
                     List<Card> binderCards = binder.getCards();
                     if(view.displayBinderCards(binderCards)) {
                         System.out.println("Enter num not in list to go back.");
                         int index = view.getCardChoice();
-
-                        // Returns to Manage Binders menu if index is invalid
                         if (index >= 0 && index < binderCards.size()) {
                             Card selected = binderCards.get(index);
                             model.removeCardFromBinder(binder, selected);
-
                             System.out.println("Card removed from binder.");
                         }
                     }
                 }
-                // Trade Card
-                case 4 -> {
-                    List<Card> binderCards = binder.getCards();
-                    if(view.displayBinderCards(binderCards)){
-                            tradeCardInBinder(binder);
-                    } else {
-                        view.displayError("Invalid binder type.");
-                        view.returningToMainMenu();
-                    }
-
-                }
-                case 5 -> {
+                case 4 -> {  // Trade OR Sell
                     if (model.isSellableBinder(binder)) {
                         sellBinder(binder);
-                        managing = false; // Exit after selling
+                        managing = false;
                     } else {
-                        if(view.confirmAction("Delete this binder and return all cards to collection?")) {
-                            boolean deleted = model.deleteBinder(binder);
-
-                            if(deleted) {
-                                System.out.println("Binder deleted.");
-                            }
-                            else {
-                                view.displayError("Failed to delete binder.");
-                            }
-
-                            managing = false;
+                        List<Card> binderCards = binder.getCards();
+                        if(view.displayBinderCards(binderCards)) {
+                            tradeCardInBinder(binder);
                         }
                     }
                 }
-                case 6 -> {
-                    if (model.isSellableBinder(binder)) {
-                        if(view.confirmAction("Delete this binder and return all cards to collection?")){
-                            boolean deleted = model.deleteBinder(binder);
-                            if(deleted) {
-                                System.out.println("Binder deleted.");
-                            }
-                            else {
-                                view.displayError("Failed to delete binder.");
-                            }
+                case 5 -> {  // Delete Binder
+                    if(view.confirmAction("Delete this binder and return all cards to collection?")) {
+                        boolean deleted = model.deleteBinder(binder);
+                        if(deleted) {
+                            System.out.println("Binder deleted.");
                             managing = false;
+                        } else {
+                            view.displayError("Failed to delete binder.");
                         }
                     }
                 }
@@ -335,13 +306,19 @@ public class TradingCardInventorySystemController {
      */
     private void createDeck() {
         String name = view.promptForDeckName();
+        if (name == null || name.isEmpty()) return;
 
-        if(name == null || name.isEmpty()){
-            view.returningToMainMenu();
+        int typeChoice = view.promptForDeckType();
+
+        if (typeChoice == 1) {
+            model.createDeck(name, false);
+        } else if (typeChoice == 2) {
+            model.createDeck(name, true);
+        } else {
+            view.displayError("Invalid deck type");
             return;
         }
-        model.createDeck(name);
-        System.out.println("Deck '" + name + "' created!");
+        System.out.println("Deck created successfully!");
     }
     /**
      * Displays deck management menu and handles user choices.
@@ -377,7 +354,7 @@ public class TradingCardInventorySystemController {
         boolean managing = true;
 
         while(managing) {
-            view.displayManageSingleDeckMenu(deck.getName());
+            view.displayManageSingleDeckMenu(deck.getName(),model.isSellableDeck(deck));
             int choice = view.getMenuChoice();
 
             switch (choice) {
@@ -446,6 +423,15 @@ public class TradingCardInventorySystemController {
                         }
 
                         managing = false;
+                    }
+                }
+                // New option 5: Sell Deck (only for sellable decks)
+                case 5 -> {
+                    if (model.isSellableDeck(deck)) {
+                        sellDeck(deck);
+                        managing = false; // Exit after selling
+                    } else {
+                        view.displayError("Invalid option.");
                     }
                 }
                 case 0 -> managing = false;
@@ -541,7 +527,7 @@ public class TradingCardInventorySystemController {
     }
 
     private void sellBinder(Binder binder) {
-        if (!model.isSellableBinder(binder)) {
+        if (!model.isSellableBinder(binder) || binder.isEmpty()) {
             view.displayError("This binder cannot be sold");
             return;
         }
@@ -579,6 +565,24 @@ public class TradingCardInventorySystemController {
             } else {
                 view.displayError("Failed to complete sale");
             }
+        }
+    }
+
+    // Add sell deck option
+    private void sellDeck(Deck deck) {
+        if (!model.isSellableDeck(deck)) {
+            view.displayError("This deck type cannot be sold");
+            return;
+        }
+
+        BigDecimal value = ((SellableDeck)deck).calculateValue();
+        System.out.printf("Sell '%s' for $%.2f?%n", deck.getName(), value);
+
+        if (view.confirmAction("Confirm sale")) {
+            boolean success = model.sellDeck(deck);
+            if (success) {
+                System.out.println("Deck sold successfully!");
+            } else {view.displayError("Cannot sell this  deck");}
         }
     }
 }

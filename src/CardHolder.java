@@ -70,6 +70,10 @@ public abstract class CardHolder {
         return cards.size();
     }
 
+    public boolean isEmpty() {
+        return cards.isEmpty();
+    }
+
     /**
      * Validates if a card can be added to this holder.
      * @param card the card to validate

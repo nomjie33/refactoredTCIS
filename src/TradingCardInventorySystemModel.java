@@ -275,8 +275,12 @@ public class TradingCardInventorySystemModel {
      *
      * @param name The name of the deck.
      */
-    public void createDeck(String name) {
-        decks.put(name, new Deck(name));
+    public void createDeck(String name, boolean sellable) {
+        if (sellable) {
+            decks.put(name, new SellableDeck(name));
+        } else {
+            decks.put(name, new NormalDeck(name));
+        }
     }
     /**
      * Retrieves a deck by index
@@ -419,9 +423,9 @@ public class TradingCardInventorySystemModel {
         return false;
     }
 
-    // Add method to check if binder is sellable
     public boolean isSellableBinder(Binder binder) {
-        return (binder.isSellable() && binder.calculatePrice().compareTo(BigDecimal.ZERO) >= 0);
+        // Only check the binder type, not emptiness
+        return binder.isSellable();
     }
 
     // Add method to sell binder
@@ -459,4 +463,33 @@ public class TradingCardInventorySystemModel {
         binders.remove(binder.getName());
         return true;
     }
+
+    // Add deck selling logic
+    public boolean sellDeck(Deck deck) {
+        if (!deck.isSellable() || ((SellableDeck) deck).calculateValue().compareTo(BigDecimal.ZERO) > 0) return false;
+
+        BigDecimal value = ((SellableDeck)deck).calculateValue();
+        collectorMoney = collectorMoney.add(value);
+
+        // Remove cards (same logic as binder selling)
+        new ArrayList<>(deck.getCards()).forEach(card -> {
+            deck.removeCard(card);
+            if (cardCollection.contains(card)) {
+                Card collectionCard = cardCollection.get(cardCollection.indexOf(card));
+                if (collectionCard.getCount() == 1) {
+                    cardCollection.remove(collectionCard);
+                } else {
+                    collectionCard.setCount(collectionCard.getCount() - 1);
+                }
+            }
+        });
+
+        decks.remove(deck.getName());
+        return true;
+    }
+
+    public boolean isSellableDeck(Deck deck) {
+        return deck.isSellable() && !deck.getCards().isEmpty();
+    }
+
 }
