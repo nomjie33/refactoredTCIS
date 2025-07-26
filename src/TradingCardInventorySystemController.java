@@ -568,15 +568,14 @@ public class TradingCardInventorySystemController {
         }
 
         BigDecimal price = sellable.calculatePrice();
-        System.out.printf("Sell '%s' for $%.2f (includes 10%% fee)?%n",
+        System.out.printf("Sell '%s' for $%.2f ?%n",
                 binder.getName(), price);
 
         if (view.confirmAction("Confirm sale")) {
             boolean success = model.sellBinder(binder);
             if (success) {
                 System.out.println("Binder sold successfully!");
-                System.out.printf("Earned: $%.2f (including $%.2f handling fee)%n",
-                        price, price.subtract(price.divide(new BigDecimal("1.10"), 2, RoundingMode.HALF_UP)));
+                System.out.printf("Earned: $%.2f", price);
             } else {
                 view.displayError("Failed to complete sale");
             }

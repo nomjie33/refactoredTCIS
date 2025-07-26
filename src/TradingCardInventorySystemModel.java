@@ -421,23 +421,42 @@ public class TradingCardInventorySystemModel {
 
     // Add method to check if binder is sellable
     public boolean isSellableBinder(Binder binder) {
-        return (binder instanceof SellableBinder && binder.calculatePrice().compareTo(BigDecimal.ZERO) >= 0);
+        return (binder.isSellable() && binder.calculatePrice().compareTo(BigDecimal.ZERO) >= 0);
     }
 
     // Add method to sell binder
+    /**
+     * Sells a binder and removes its cards from collection if count is zero
+     * @param binder The binder to sell
+     * @return true if sale was successful
+     */
     public boolean sellBinder(Binder binder) {
-        if (binder instanceof SellableBinder) {
-            SellableBinder sellable = (SellableBinder) binder;
-            BigDecimal price = sellable.calculatePrice();
-            collectorMoney = collectorMoney.add(price);
-
-            // Remove all cards from binder
-            new ArrayList<>(binder.getCards()).forEach(card ->
-                    removeCardFromBinder(binder, card));
-
-            binders.remove(binder.getName());
-            return true;
+        if (!(binder instanceof SellableBinder)) {
+            return false;
         }
-        return false;
+
+        SellableBinder sellable = (SellableBinder) binder;
+        BigDecimal price = sellable.calculatePrice();
+
+        // Process each card in the binder
+        new ArrayList<>(binder.getCards()).forEach(card -> {
+            // Remove from binder first
+            binder.removeCard(card);
+
+            // Check if card exists in collection
+            if (cardCollection.contains(card)) {
+                Card collectionCard = cardCollection.get(cardCollection.indexOf(card));
+
+                // Only remove from collection if count would reach zero
+                if (collectionCard.getCount() == 0) {
+                    cardCollection.remove(collectionCard);
+                }
+            }
+        });
+
+        // Complete the sale
+        collectorMoney = collectorMoney.add(price);
+        binders.remove(binder.getName());
+        return true;
     }
 }
