@@ -284,18 +284,24 @@ public class TradingCardInventorySystemModel {
 
     private boolean shouldRemoveFromCollection(Card card) {
         // Don't remove if card still has copies in collection
-        if (cardCollection.contains(card) &&
-                cardCollection.get(cardCollection.indexOf(card)).getCount() > 1) {
+        if (cardCollection.contains(card) && cardCollection.get(cardCollection.indexOf(card)).getCount() > 1) {
+            System.out.println("Copy found in collection.  NOT DELETING FROM COLLECTION");
             return false;
         }
 
         // Check all binders and decks for other copies
         for (Binder b : binders.values()) {
-            if (b.containsCard(card)) return false;
+            if (b.containsCard(card)) {
+                System.out.println("Copy found in binder.  NOT DELETING FROM COLLECTION");
+                return false;
+            }
         }
 
         for (Deck d : decks.values()) {
-            if (d.containsCard(card)) return false;
+            if (d.containsCard(card)) {
+                System.out.println("Copy found in deck.  NOT DELETING FROM COLLECTION");
+                return false;
+            }
         }
 
         // Only remove if no copies exist elsewhere
