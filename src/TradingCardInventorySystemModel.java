@@ -466,7 +466,7 @@ public class TradingCardInventorySystemModel {
 
     // Add deck selling logic
     public boolean sellDeck(Deck deck) {
-        if (!deck.isSellable() || ((SellableDeck) deck).calculateValue().compareTo(BigDecimal.ZERO) > 0) return false;
+        if (!deck.isSellable() || ((SellableDeck) deck).calculateValue().compareTo(BigDecimal.ZERO) <= 0) return false;
 
         BigDecimal value = ((SellableDeck)deck).calculateValue();
         collectorMoney = collectorMoney.add(value);

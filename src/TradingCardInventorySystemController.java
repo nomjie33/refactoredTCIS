@@ -582,7 +582,7 @@ public class TradingCardInventorySystemController {
             boolean success = model.sellDeck(deck);
             if (success) {
                 System.out.println("Deck sold successfully!");
-            } else {view.displayError("Cannot sell this  deck");}
+            } else {view.displayError("Cannot sell this deck");}
         }
     }
 }
