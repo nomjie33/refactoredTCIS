@@ -257,15 +257,48 @@ public class TradingCardInventorySystemModel {
      * @return true if the trade was successful, false otherwise.
      */
     public boolean executeTrade(Binder binder, Card incoming, Card outgoing) {
-        if(!binder.containsCard(outgoing)) {
+        // Validate the trade can occur
+        if (!binder.containsCard(outgoing)) {
             return false;
         }
 
+        // Add incoming card (set count to 0 as per original logic)
         incoming.setCount(0);
         addCardToCollection(incoming);
-        binder.addCard(incoming);
+
+        // Validate incoming card can be added to binder
+        if (!binder.addCard(incoming)) {
+            return false;
+        }
+
+        // Remove outgoing card from binder
         binder.removeCard(outgoing);
 
+        // Check if we should remove outgoing card from collection
+        if (shouldRemoveFromCollection(outgoing)) {
+            cardCollection.remove(outgoing);
+        }
+
+        return true;
+    }
+
+    private boolean shouldRemoveFromCollection(Card card) {
+        // Don't remove if card still has copies in collection
+        if (cardCollection.contains(card) &&
+                cardCollection.get(cardCollection.indexOf(card)).getCount() > 1) {
+            return false;
+        }
+
+        // Check all binders and decks for other copies
+        for (Binder b : binders.values()) {
+            if (b.containsCard(card)) return false;
+        }
+
+        for (Deck d : decks.values()) {
+            if (d.containsCard(card)) return false;
+        }
+
+        // Only remove if no copies exist elsewhere
         return true;
     }
 
