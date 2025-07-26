@@ -476,7 +476,7 @@ public class TradingCardInventorySystemModel {
             deck.removeCard(card);
             if (cardCollection.contains(card)) {
                 Card collectionCard = cardCollection.get(cardCollection.indexOf(card));
-                if (collectionCard.getCount() == 1) {
+                if (collectionCard.getCount() == 0) {
                     cardCollection.remove(collectionCard);
                 } else {
                     collectionCard.setCount(collectionCard.getCount() - 1);
