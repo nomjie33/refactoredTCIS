@@ -10,7 +10,7 @@ public class TradingCardInventorySystemGUI {
     private JPanel rarityPanel;
     private JTextField binderNameField;
 
-    // Image paths (placeholder names - replace with your actual image files)
+    // Image paths (placeholder names - replace with actual image file path)
     private static final String ADD_CARD_IMG = "C:/Users/yomi/Downloads/src (5)/src/add_card.png";
     private static final String CREATE_BINDER_IMG = "C:/Users/yomi/Downloads/src (5)/src/create_binder.png";
     private static final String CREATE_DECK_IMG = "C:/Users/yomi/Downloads/src (5)/src/create_deck.png";
