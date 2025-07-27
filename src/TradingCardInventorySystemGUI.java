@@ -82,7 +82,7 @@ public class TradingCardInventorySystemGUI {
         JButton binderBtn;
         if (hasBinders) {
             binderBtn = createImageButton(MANAGE_BINDERS_IMG, "Manage Binders");
-            //TODO: binderBtn.addActionListener(e -> manageBindersScreen());
+            binderBtn.addActionListener(e -> manageBindersScreen());
         } else {
             binderBtn = createImageButton(CREATE_BINDER_IMG, "Create Binder");
             binderBtn.addActionListener(e -> showCreateBinderScreen());
@@ -326,5 +326,156 @@ public class TradingCardInventorySystemGUI {
         updateMainFrame(panel);
     }
 
-    // ... Similar methods for createBinderScreen and createDeckScreen
+    private void manageBindersScreen() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        // Title
+        JLabel title = new JLabel("Manage Binders", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 18));
+        panel.add(title, BorderLayout.NORTH);
+
+        // Binder List
+        DefaultListModel<String> binderListModel = new DefaultListModel<>();
+        controller.getBinderNames().forEach(binderListModel::addElement);
+        JList<String> binderList = new JList<>(binderListModel);
+        binderList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JScrollPane scrollPane = new JScrollPane(binderList);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        // Button Panel
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 5, 5));
+
+        // View Binder Button
+        JButton viewBtn = new JButton("View Selected Binder");
+        viewBtn.addActionListener(e -> {
+            int selectedIndex = binderList.getSelectedIndex();
+            if (selectedIndex >= 0) {
+                manageSingleBinderScreen(selectedIndex);
+            } else {
+                showError("Please select a binder first");
+            }
+        });
+
+        // Create New Binder Button
+        JButton createBtn = new JButton("Create New Binder");
+        createBtn.addActionListener(e -> showCreateBinderScreen());
+
+        // Back Button
+        JButton backBtn = createImageButton(BACK_BUTTON_IMG, "Back");
+        backBtn.addActionListener(e -> showInitialMenu());
+
+        buttonPanel.add(viewBtn);
+        buttonPanel.add(createBtn);
+        buttonPanel.add(backBtn);
+
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+        updateMainFrame(panel);
+    }
+
+    private void manageSingleBinderScreen(int binderIndex) {
+        Binder binder = controller.getBinder(binderIndex);
+        JPanel panel = new JPanel(new BorderLayout());
+
+        // Title
+        JLabel title = new JLabel(binder.getName(), SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 18));
+        panel.add(title, BorderLayout.NORTH);
+
+        // Card List
+        DefaultListModel<String> cardListModel = new DefaultListModel<>();
+        binder.getCards().forEach(card -> cardListModel.addElement(card.getName()));
+        JList<String> cardList = new JList<>(cardListModel);
+
+        JScrollPane scrollPane = new JScrollPane(cardList);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        // Button Panel
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+
+        // Add Card Button
+        JButton addBtn = new JButton("Add Card");
+        addBtn.addActionListener(e -> showAddCardToBinderScreen(binderIndex));
+
+        // Remove Card Button
+        JButton removeBtn = new JButton("Remove Card");
+        removeBtn.addActionListener(e -> {
+            int selectedIndex = cardList.getSelectedIndex();
+            if (selectedIndex >= 0) {
+                controller.removeCardFromBinder(binder, binder.getCards().get(selectedIndex));
+                manageSingleBinderScreen(binderIndex); // Refresh
+            } else {
+                showError("Please select a card first");
+            }
+        });
+
+        // Special Actions Button
+        JButton actionBtn;
+        if (controller.isSellableBinder(binder)) {
+            actionBtn = new JButton("Sell Binder");
+            //TODO: actionBtn.addActionListener(e -> sellBinderScreen(binder));
+        } else {
+            actionBtn = new JButton("Trade Cards");
+            //TODO: actionBtn.addActionListener(e -> tradeCardsScreen(binder));
+        }
+
+        // Back Button
+        JButton backBtn = createImageButton(BACK_BUTTON_IMG, "Back");
+        backBtn.addActionListener(e -> manageBindersScreen());
+
+        buttonPanel.add(addBtn);
+        buttonPanel.add(removeBtn);
+        buttonPanel.add(actionBtn);
+        buttonPanel.add(backBtn);
+
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+        updateMainFrame(panel);
+    }
+
+    private void showAddCardToBinderScreen(int binderIndex) {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        // Title
+        JLabel title = new JLabel("Add Card to Binder", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 18));
+        panel.add(title, BorderLayout.NORTH);
+
+        // Available Cards List
+        DefaultListModel<String> cardListModel = new DefaultListModel<>();
+        controller.getCardCollection().forEach(card -> cardListModel.addElement(card.getName()));
+        JList<String> cardList = new JList<>(cardListModel);
+
+        JScrollPane scrollPane = new JScrollPane(cardList);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        // Button Panel
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
+
+        // Add Button
+        JButton addBtn = new JButton("Add Selected");
+        addBtn.addActionListener(e -> {
+            int selectedIndex = cardList.getSelectedIndex();
+            if (selectedIndex >= 0) {
+                Card selected = controller.getCardFromCollection(selectedIndex);
+                if (controller.addCardToBinder(controller.getBinder(binderIndex), selected)) {
+                    showSuccess("Card added successfully!");
+                    manageSingleBinderScreen(binderIndex);
+                } else {
+                    showError("Cannot add this card to binder");
+                }
+            } else {
+                showError("Please select a card first");
+            }
+        });
+
+        // Back Button
+        JButton backBtn = createImageButton(BACK_BUTTON_IMG, "Back");
+        backBtn.addActionListener(e -> manageSingleBinderScreen(binderIndex));
+
+        buttonPanel.add(addBtn);
+        buttonPanel.add(backBtn);
+
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+        updateMainFrame(panel);
+    }
 }

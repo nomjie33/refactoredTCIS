@@ -649,4 +649,34 @@ public class TradingCardInventorySystemController {
             } else {view.displayError("Cannot sell this deck");}
         }
     }
+
+    // helpers for managebinder methods in GUI
+
+    public List<String> getBinderNames() {
+        return model.getBinderNames();
+    }
+
+    public Binder getBinder(int index) {
+        return model.getBinder(index);
+    }
+
+    public void removeCardFromBinder(Binder binder, Card card) {
+        model.removeCardFromBinder(binder, card);
+    }
+
+    public boolean isSellableBinder(Binder binder) {
+        return model.isSellableBinder(binder);
+    }
+
+    public List<Card> getCardCollection() {
+        return model.getCardCollection();
+    }
+
+    public boolean addCardToBinder(Binder binder, Card card) {
+        return model.addCardToBinder(binder, card);
+    }
+
+    public Card getCardFromCollection(int index) {
+        return model.getCardFromCollection(index);
+    }
 }
