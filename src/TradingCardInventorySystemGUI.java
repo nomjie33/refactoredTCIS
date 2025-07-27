@@ -7,6 +7,7 @@ public class TradingCardInventorySystemGUI {
     private final TradingCardInventorySystemController controller;
     private JFrame mainFrame;
     private JPanel variantPanel;
+    private JPanel rarityPanel;
     private JTextField binderNameField;
 
     // Image paths (placeholder names - replace with your actual image files)
@@ -26,16 +27,16 @@ public class TradingCardInventorySystemGUI {
     private static final String RARE_RARITY_IMG = "C:/Users/yomi/Downloads/src (5)/src/rare.png";
     private static final String LEGENDARY_RARITY_IMG = "C:/Users/yomi/Downloads/src (5)/src/legendary.png";
     // Variant buttons
-    private static final String NORMAL_VARIANT_IMG = "images/normal.png";
-    private static final String EXTENDED_ART_VARIANT_IMG = "images/extart.png";
-    private static final String FULLART_VARIANT_IMG = "images/fullart.png";
-    private static final String ALT_VARIANT_IMG = "images/altart.png";
+    private static final String NORMAL_VARIANT_IMG = "C:/Users/yomi/Downloads/src (5)/src/normal.png";
+    private static final String EXTENDED_ART_VARIANT_IMG = "C:/Users/yomi/Downloads/src (5)/src/extart.png";
+    private static final String FULLART_VARIANT_IMG = "C:/Users/yomi/Downloads/src (5)/src/fullart.png";
+    private static final String ALT_VARIANT_IMG = "C:/Users/yomi/Downloads/src (5)/src/altart.png";
     // Binder type buttons
-    private static final String BASIC_BINDER_IMG = "images/basic_binder.png";
-    private static final String PAUPER_BINDER_IMG = "images/pauper_binder.png";
-    private static final String RARES_BINDER_IMG = "images/rares_binder.png";
-    private static final String LUXURY_BINDER_IMG = "images/luxury_binder.png";
-    private static final String COLLECTOR_BINDER_IMG = "images/collector_binder.png";
+    private static final String BASIC_BINDER_IMG = "C:/Users/yomi/Downloads/src (5)/src/basic_binder.png";
+    private static final String PAUPER_BINDER_IMG = "C:/Users/yomi/Downloads/src (5)/src/pauper_binder.png";
+    private static final String RARES_BINDER_IMG = "C:/Users/yomi/Downloads/src (5)/src/rares_binder.png";
+    private static final String LUXURY_BINDER_IMG = "C:/Users/yomi/Downloads/src (5)/src/luxury_binder.png";
+    private static final String COLLECTOR_BINDER_IMG = "C:/Users/yomi/Downloads/src (5)/src/collector_binder.png";
     // Deck type buttons
     private static final String NORMAL_DECK_IMG = "images/normal_deck.png";
     private static final String SELLABLE_DECK_IMG = "images/sellable_deck.png";
@@ -180,7 +181,7 @@ public class TradingCardInventorySystemGUI {
         namePanel.add(nameField);
 
         // Rarity Selection
-        JPanel rarityPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        rarityPanel = new JPanel(new GridLayout(1, 4, 5, 5));
         addRarityButton(rarityPanel, "Common", COMMON_RARITY_IMG, CardRarity.COMMON);
         addRarityButton(rarityPanel, "Uncommon", UNCOMMON_RARITY_IMG, CardRarity.UNCOMMON);
         addRarityButton(rarityPanel, "Rare", RARE_RARITY_IMG, CardRarity.RARE);
@@ -200,7 +201,7 @@ public class TradingCardInventorySystemGUI {
         valuePanel.add(new JLabel("Value: $"));
         valuePanel.add(valueField);
 
-        // Submit Button
+        // Submit and Back Buttons
         JButton submitBtn = new JButton("Submit");
         submitBtn.addActionListener(e -> {
             controller.handleAddCardFromGUI(
@@ -211,9 +212,17 @@ public class TradingCardInventorySystemGUI {
             );
         });
 
-        // Back Button
         JButton backBtn = createImageButton(BACK_BUTTON_IMG, "Back");
         backBtn.addActionListener(e -> showInitialMenu());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(submitBtn);
+        buttonPanel.add(backBtn);
+
+        // Create a container panel for the bottom components
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.add(valuePanel, BorderLayout.NORTH);
+        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         // Create a container panel for the rarity and variant panels
         JPanel selectionPanel = new JPanel(new BorderLayout());
@@ -223,12 +232,7 @@ public class TradingCardInventorySystemGUI {
         // Layout
         panel.add(namePanel, BorderLayout.NORTH);
         panel.add(selectionPanel, BorderLayout.CENTER);
-        panel.add(valuePanel, BorderLayout.SOUTH);
-
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(submitBtn);
-        buttonPanel.add(backBtn);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
+        panel.add(bottomPanel, BorderLayout.SOUTH);
 
         updateMainFrame(panel);
     }
