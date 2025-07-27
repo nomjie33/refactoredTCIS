@@ -15,12 +15,12 @@ public class TradingCardInventorySystemGUI {
     private static final String CREATE_BINDER_IMG = "C:/Users/yomi/Downloads/src (5)/src/create_binder.png";
     private static final String CREATE_DECK_IMG = "C:/Users/yomi/Downloads/src (5)/src/create_deck.png";
     private static final String BACK_BUTTON_IMG = "C:/Users/yomi/Downloads/src (5)/src/back.png";
-    private static final String MANAGE_BINDERS_IMG = "images/manage_binders.png";
-    private static final String MANAGE_DECKS_IMG = "images/manage_decks.png";
-    private static final String ADJUST_COUNT_IMG = "images/adjust_count.png";
-    private static final String DISPLAY_IMG = "images/display.png";
-    private static final String SELL_IMG = "images/sell.png";
-    private static final String EXIT_IMG = "images/exit.png";
+    private static final String MANAGE_BINDERS_IMG = "C:/Users/yomi/Downloads/src (5)/src/manage_binders.png";
+    private static final String MANAGE_DECKS_IMG = "C:/Users/yomi/Downloads/src (5)/src/manage_decks.png";
+    private static final String ADJUST_COUNT_IMG = "C:/Users/yomi/Downloads/src (5)/src/adjust_count.png";
+    private static final String DISPLAY_IMG = "C:/Users/yomi/Downloads/src (5)/src/display.png";
+    private static final String SELL_IMG = "C:/Users/yomi/Downloads/src (5)/src/sellcard.png";
+    private static final String EXIT_IMG = "C:/Users/yomi/Downloads/src (5)/src/exit.png";
     // Rarity buttons
     private static final String COMMON_RARITY_IMG = "C:/Users/yomi/Downloads/src (5)/src/common.png";
     private static final String UNCOMMON_RARITY_IMG = "C:/Users/yomi/Downloads/src (5)/src/uncommon.png";
@@ -82,7 +82,7 @@ public class TradingCardInventorySystemGUI {
         JButton binderBtn;
         if (hasBinders) {
             binderBtn = createImageButton(MANAGE_BINDERS_IMG, "Manage Binders");
-            //binderBtn.addActionListener(e -> manageBinders());
+            //TODO: binderBtn.addActionListener(e -> manageBindersScreen());
         } else {
             binderBtn = createImageButton(CREATE_BINDER_IMG, "Create Binder");
             binderBtn.addActionListener(e -> showCreateBinderScreen());
@@ -93,7 +93,7 @@ public class TradingCardInventorySystemGUI {
         JButton deckBtn;
         if (hasDecks) {
             deckBtn = createImageButton(MANAGE_DECKS_IMG, "Manage Decks");
-            //deckBtn.addActionListener(e -> manageDecks());
+            //TODO: deckBtn.addActionListener(e -> manageDecksScreen());
         } else {
             deckBtn = createImageButton(CREATE_DECK_IMG, "Create Deck");
             deckBtn.addActionListener(e -> showCreateDeckScreen());
@@ -103,15 +103,15 @@ public class TradingCardInventorySystemGUI {
         // Additional options if cards exist
         if (hasCards) {
             JButton adjustCountBtn = createImageButton(ADJUST_COUNT_IMG, "Adjust Card Count");
-            //adjustCountBtn.addActionListener(e -> adjustCardCount());
+            //TODO: adjustCountBtn.addActionListener(e -> adjustCardCountScreen());
             panel.add(adjustCountBtn, gbc);
 
             JButton displayBtn = createImageButton(DISPLAY_IMG, "Display Collection");
-            //displayBtn.addActionListener(e -> displayCardOrCollection());
+            //TODO: displayBtn.addActionListener(e -> displayCardOrCollectionScreen());
             panel.add(displayBtn, gbc);
 
             JButton sellBtn = createImageButton(SELL_IMG, "Sell Card");
-            //sellBtn.addActionListener(e -> sellCards());
+            //TODO: sellBtn.addActionListener(e -> sellCardsScreen());
             panel.add(sellBtn, gbc);
         }
 
