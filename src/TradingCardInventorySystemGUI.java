@@ -21,10 +21,10 @@ public class TradingCardInventorySystemGUI {
     private static final String SELL_IMG = "images/sell.png";
     private static final String EXIT_IMG = "images/exit.png";
     // Rarity buttons
-    private static final String COMMON_RARITY_IMG = "images/common.png";
-    private static final String UNCOMMON_RARITY_IMG = "images/uncommon.png";
-    private static final String RARE_RARITY_IMG = "images/rare.png";
-    private static final String LEGENDARY_RARITY_IMG = "images/legendary.png";
+    private static final String COMMON_RARITY_IMG = "C:/Users/yomi/Downloads/src (5)/src/common.png";
+    private static final String UNCOMMON_RARITY_IMG = "C:/Users/yomi/Downloads/src (5)/src/uncommon.png";
+    private static final String RARE_RARITY_IMG = "C:/Users/yomi/Downloads/src (5)/src/rare.png";
+    private static final String LEGENDARY_RARITY_IMG = "C:/Users/yomi/Downloads/src (5)/src/legendary.png";
     // Variant buttons
     private static final String NORMAL_VARIANT_IMG = "images/normal.png";
     private static final String EXTENDED_ART_VARIANT_IMG = "images/extart.png";
@@ -81,7 +81,7 @@ public class TradingCardInventorySystemGUI {
         JButton binderBtn;
         if (hasBinders) {
             binderBtn = createImageButton(MANAGE_BINDERS_IMG, "Manage Binders");
-            binderBtn.addActionListener(e -> manageBinders());
+            //binderBtn.addActionListener(e -> manageBinders());
         } else {
             binderBtn = createImageButton(CREATE_BINDER_IMG, "Create Binder");
             binderBtn.addActionListener(e -> showCreateBinderScreen());
@@ -92,7 +92,7 @@ public class TradingCardInventorySystemGUI {
         JButton deckBtn;
         if (hasDecks) {
             deckBtn = createImageButton(MANAGE_DECKS_IMG, "Manage Decks");
-            deckBtn.addActionListener(e -> manageDecks());
+            //deckBtn.addActionListener(e -> manageDecks());
         } else {
             deckBtn = createImageButton(CREATE_DECK_IMG, "Create Deck");
             deckBtn.addActionListener(e -> showCreateDeckScreen());
@@ -102,15 +102,15 @@ public class TradingCardInventorySystemGUI {
         // Additional options if cards exist
         if (hasCards) {
             JButton adjustCountBtn = createImageButton(ADJUST_COUNT_IMG, "Adjust Card Count");
-            adjustCountBtn.addActionListener(e -> adjustCardCount());
+            //adjustCountBtn.addActionListener(e -> adjustCardCount());
             panel.add(adjustCountBtn, gbc);
 
             JButton displayBtn = createImageButton(DISPLAY_IMG, "Display Collection");
-            displayBtn.addActionListener(e -> displayCardOrCollection());
+            //displayBtn.addActionListener(e -> displayCardOrCollection());
             panel.add(displayBtn, gbc);
 
             JButton sellBtn = createImageButton(SELL_IMG, "Sell Card");
-            sellBtn.addActionListener(e -> sellCards());
+            //sellBtn.addActionListener(e -> sellCards());
             panel.add(sellBtn, gbc);
         }
 
@@ -167,7 +167,11 @@ public class TradingCardInventorySystemGUI {
     private int selectedBinderType;
 
     public void showAddCardScreen() {
-        JPanel panel = new JPanel(new BorderLayout());
+        // Initialize selections
+        selectedRarity = null;
+        selectedVariant = CardVariant.NORMAL; // Default variant
+
+        JPanel panel = new JPanel(new BorderLayout(10, 10)); // Added gaps between components
 
         // Card Name Input
         JTextField nameField = new JTextField(20);
@@ -186,9 +190,9 @@ public class TradingCardInventorySystemGUI {
         variantPanel = new JPanel(new GridLayout(1, 4, 5, 5));
         variantPanel.setVisible(false);
         addVariantButton(variantPanel, "Normal", NORMAL_VARIANT_IMG, CardVariant.NORMAL);
-        addVariantButton(variantPanel, "Holo", EXTENDED_ART_VARIANT_IMG, CardVariant.EXTENDED_ART);
+        addVariantButton(variantPanel, "Extended Art", EXTENDED_ART_VARIANT_IMG, CardVariant.EXTENDED_ART);
         addVariantButton(variantPanel, "Full Art", FULLART_VARIANT_IMG, CardVariant.FULL_ART);
-        addVariantButton(variantPanel, "Secret", ALT_VARIANT_IMG, CardVariant.ALT_ART);
+        addVariantButton(variantPanel, "Alt Art", ALT_VARIANT_IMG, CardVariant.ALT_ART);
 
         // Value Input
         JTextField valueField = new JTextField(10);
@@ -211,10 +215,14 @@ public class TradingCardInventorySystemGUI {
         JButton backBtn = createImageButton(BACK_BUTTON_IMG, "Back");
         backBtn.addActionListener(e -> showInitialMenu());
 
+        // Create a container panel for the rarity and variant panels
+        JPanel selectionPanel = new JPanel(new BorderLayout());
+        selectionPanel.add(rarityPanel, BorderLayout.NORTH);
+        selectionPanel.add(variantPanel, BorderLayout.CENTER);
+
         // Layout
         panel.add(namePanel, BorderLayout.NORTH);
-        panel.add(rarityPanel, BorderLayout.CENTER);
-        panel.add(variantPanel, BorderLayout.CENTER);
+        panel.add(selectionPanel, BorderLayout.CENTER);
         panel.add(valuePanel, BorderLayout.SOUTH);
 
         JPanel buttonPanel = new JPanel();
