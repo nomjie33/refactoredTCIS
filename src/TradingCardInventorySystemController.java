@@ -25,6 +25,7 @@ public class TradingCardInventorySystemController {
 
     // New GUI-specific methods
     public void handleAddCardFromGUI(String name, CardRarity rarity, CardVariant variant, String valueStr) {
+        if (gui == null) return;
         try {
             BigDecimal value = new BigDecimal(valueStr);
             if (name == null || name.isBlank() || value.compareTo(BigDecimal.ZERO) <= 0) {

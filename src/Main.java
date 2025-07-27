@@ -4,11 +4,11 @@ public class Main {
         TradingCardInventorySystemView view = new TradingCardInventorySystemView();
         TradingCardInventorySystemController controller = new TradingCardInventorySystemController(model, view);
 
-        if (args.length > 0 && args[0].equalsIgnoreCase("gui")) {
+        //if (args.length > 0 && args[0].equalsIgnoreCase("gui")) {
             TradingCardInventorySystemGUI gui = new TradingCardInventorySystemGUI(controller);
             controller.setGUI(gui);
-        } else {
+       // } else {
             controller.startProgram();
-        }
+       // }
     }
 }

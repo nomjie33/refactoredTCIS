@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 public class TradingCardInventorySystemGUI {
     private final TradingCardInventorySystemController controller;
     private JFrame mainFrame;
+    private JPanel variantPanel;
+    private JTextField binderNameField;
 
     // Image paths (placeholder names - replace with your actual image files)
     private static final String ADD_CARD_IMG = "images/add_card.png";
@@ -19,13 +21,15 @@ public class TradingCardInventorySystemGUI {
     private static final String LEGENDARY_RARITY_IMG = "images/legendary.png";
     // Variant buttons
     private static final String NORMAL_VARIANT_IMG = "images/normal.png";
-    private static final String HOLO_VARIANT_IMG = "images/holo.png";
+    private static final String EXTENDED_ART_VARIANT_IMG = "images/extart.png";
     private static final String FULLART_VARIANT_IMG = "images/fullart.png";
-    private static final String SECRET_VARIANT_IMG = "images/secret.png";
+    private static final String ALT_VARIANT_IMG = "images/altart.png";
     // Binder type buttons
     private static final String BASIC_BINDER_IMG = "images/basic_binder.png";
     private static final String PAUPER_BINDER_IMG = "images/pauper_binder.png";
-    // ... more binder type images
+    private static final String RARES_BINDER_IMG = "images/rares_binder.png";
+    private static final String LUXURY_BINDER_IMG = "images/luxury_binder.png";
+    private static final String COLLECTOR_BINDER_IMG = "images/collector_binder.png";
     // Deck type buttons
     private static final String NORMAL_DECK_IMG = "images/normal_deck.png";
     private static final String SELLABLE_DECK_IMG = "images/sellable_deck.png";
@@ -70,11 +74,44 @@ public class TradingCardInventorySystemGUI {
         return button;
     }
 
+    public void showError(String message) {
+        JOptionPane.showMessageDialog(mainFrame, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void showSuccess(String message) {
+        JOptionPane.showMessageDialog(mainFrame, message, "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void addRarityButton(JPanel panel, String text, String imagePath, CardRarity rarity) {
+        JButton btn = createImageButton(imagePath, text);
+        btn.addActionListener(e -> {
+            selectedRarity = rarity;
+            // Show variant panel only for rare/legendary cards
+            variantPanel.setVisible(rarity == CardRarity.RARE || rarity == CardRarity.LEGENDARY);
+        });
+        panel.add(btn);
+    }
+
+    private void addVariantButton(JPanel panel, String text, String imagePath, CardVariant variant) {
+        JButton btn = createImageButton(imagePath, text);
+        btn.addActionListener(e -> {
+            selectedVariant = variant;
+        });
+        panel.add(btn);
+    }
+
+    private void updateMainFrame(JPanel newPanel) {
+        mainFrame.getContentPane().removeAll();
+        mainFrame.getContentPane().add(newPanel);
+        mainFrame.revalidate();
+        mainFrame.repaint();
+    }
+
     private CardRarity selectedRarity;
     private CardVariant selectedVariant;
     private int selectedBinderType;
 
-    private void showAddCardScreen() {
+    public void showAddCardScreen() {
         JPanel panel = new JPanel(new BorderLayout());
 
         // Card Name Input
@@ -91,12 +128,12 @@ public class TradingCardInventorySystemGUI {
         addRarityButton(rarityPanel, "Legendary", LEGENDARY_RARITY_IMG, CardRarity.LEGENDARY);
 
         // Variant Selection (initially hidden)
-        JPanel variantPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        variantPanel = new JPanel(new GridLayout(1, 4, 5, 5));
         variantPanel.setVisible(false);
         addVariantButton(variantPanel, "Normal", NORMAL_VARIANT_IMG, CardVariant.NORMAL);
-        addVariantButton(variantPanel, "Holo", HOLO_VARIANT_IMG, CardVariant.HOLOGRAPHIC);
-        addVariantButton(variantPanel, "Full Art", FULLART_VARIANT_IMG, CardVariant.FULLART);
-        addVariantButton(variantPanel, "Secret", SECRET_VARIANT_IMG, CardVariant.SECRET);
+        addVariantButton(variantPanel, "Holo", EXTENDED_ART_VARIANT_IMG, CardVariant.EXTENDED_ART);
+        addVariantButton(variantPanel, "Full Art", FULLART_VARIANT_IMG, CardVariant.FULL_ART);
+        addVariantButton(variantPanel, "Secret", ALT_VARIANT_IMG, CardVariant.ALT_ART);
 
         // Value Input
         JTextField valueField = new JTextField(10);
@@ -133,14 +170,14 @@ public class TradingCardInventorySystemGUI {
         updateMainFrame(panel);
     }
 
-    private void showCreateBinderScreen() {
+    public void showCreateBinderScreen() {
         JPanel panel = new JPanel(new BorderLayout());
 
         // Binder Name Input
-        JTextField nameField = new JTextField(20);
+        binderNameField = new JTextField(20); // Store as field instead of local variable
         JPanel namePanel = new JPanel();
         namePanel.add(new JLabel("Binder Name:"));
-        namePanel.add(nameField);
+        namePanel.add(binderNameField);
 
         // Binder Type Selection
         JPanel typePanel = new JPanel(new GridLayout(5, 1, 5, 5));
@@ -174,7 +211,7 @@ public class TradingCardInventorySystemGUI {
         JButton btn = createImageButton(imagePath, text);
         btn.addActionListener(e -> {
             controller.handleCreateBinderFromGUI(
-                    ((JTextField)panel.getComponent(0)).getText(), // Get name from field
+                    binderNameField.getText(), // Now using the class field
                     type
             );
         });
@@ -185,6 +222,42 @@ public class TradingCardInventorySystemGUI {
         panel.add(btnPanel);
     }
 
+    private void showCreateDeckScreen() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        // Deck Name Input
+        JTextField nameField = new JTextField(20);
+        JPanel namePanel = new JPanel();
+        namePanel.add(new JLabel("Deck Name:"));
+        namePanel.add(nameField);
+
+        // Deck Type Selection
+        JPanel typePanel = new JPanel(new GridLayout(2, 1, 5, 5));
+
+        JButton normalDeckBtn = createImageButton(NORMAL_DECK_IMG, "Normal Deck");
+        normalDeckBtn.addActionListener(e -> {
+            controller.handleCreateDeckFromGUI(nameField.getText(), false);
+        });
+
+        JButton sellableDeckBtn = createImageButton(SELLABLE_DECK_IMG, "Sellable Deck");
+        sellableDeckBtn.addActionListener(e -> {
+            controller.handleCreateDeckFromGUI(nameField.getText(), true);
+        });
+
+        typePanel.add(normalDeckBtn);
+        typePanel.add(sellableDeckBtn);
+
+        // Back Button
+        JButton backBtn = createImageButton(BACK_BUTTON_IMG, "Back");
+        backBtn.addActionListener(e -> showInitialMenu());
+
+        // Layout
+        panel.add(namePanel, BorderLayout.NORTH);
+        panel.add(typePanel, BorderLayout.CENTER);
+        panel.add(backBtn, BorderLayout.SOUTH);
+
+        updateMainFrame(panel);
+    }
 
     // ... Similar methods for createBinderScreen and createDeckScreen
 }
