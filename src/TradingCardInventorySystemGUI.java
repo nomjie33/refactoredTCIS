@@ -38,8 +38,8 @@ public class TradingCardInventorySystemGUI {
     private static final String LUXURY_BINDER_IMG = "C:/Users/yomi/Downloads/src (5)/src/luxury_binder.png";
     private static final String COLLECTOR_BINDER_IMG = "C:/Users/yomi/Downloads/src (5)/src/collector_binder.png";
     // Deck type buttons
-    private static final String NORMAL_DECK_IMG = "images/normal_deck.png";
-    private static final String SELLABLE_DECK_IMG = "images/sellable_deck.png";
+    private static final String NORMAL_DECK_IMG = "C:/Users/yomi/Downloads/src (5)/src/normal_deck.png";
+    private static final String SELLABLE_DECK_IMG = "C:/Users/yomi/Downloads/src (5)/src/sellable_deck.png";
 
     public TradingCardInventorySystemGUI(TradingCardInventorySystemController controller) {
         this.controller = controller;
