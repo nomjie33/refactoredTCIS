@@ -65,6 +65,18 @@ public class TradingCardInventorySystemController {
         gui.showSuccess("Deck created successfully!");
         gui.showInitialMenu();
     }
+    // for GUI main menu updates
+    public boolean systemHasCards() {
+        return model.hasCards();
+    }
+
+    public boolean systemHasBinders() {
+        return model.hasBinders();
+    }
+
+    public boolean systemHasDecks() {
+        return model.hasDecks();
+    }
     /**
      * Starts the main program loop and displays the menu system.
      */

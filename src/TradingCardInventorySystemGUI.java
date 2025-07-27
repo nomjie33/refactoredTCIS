@@ -10,10 +10,16 @@ public class TradingCardInventorySystemGUI {
     private JTextField binderNameField;
 
     // Image paths (placeholder names - replace with your actual image files)
-    private static final String ADD_CARD_IMG = "images/add_card.png";
-    private static final String CREATE_BINDER_IMG = "images/create_binder.png";
-    private static final String CREATE_DECK_IMG = "images/create_deck.png";
-    private static final String BACK_BUTTON_IMG = "images/back.png";
+    private static final String ADD_CARD_IMG = "C:/Users/yomi/Downloads/src (5)/src/add_card.png";
+    private static final String CREATE_BINDER_IMG = "C:/Users/yomi/Downloads/src (5)/src/create_binder.png";
+    private static final String CREATE_DECK_IMG = "C:/Users/yomi/Downloads/src (5)/src/create_deck.png";
+    private static final String BACK_BUTTON_IMG = "C:/Users/yomi/Downloads/src (5)/src/back.png";
+    private static final String MANAGE_BINDERS_IMG = "images/manage_binders.png";
+    private static final String MANAGE_DECKS_IMG = "images/manage_decks.png";
+    private static final String ADJUST_COUNT_IMG = "images/adjust_count.png";
+    private static final String DISPLAY_IMG = "images/display.png";
+    private static final String SELL_IMG = "images/sell.png";
+    private static final String EXIT_IMG = "images/exit.png";
     // Rarity buttons
     private static final String COMMON_RARITY_IMG = "images/common.png";
     private static final String UNCOMMON_RARITY_IMG = "images/uncommon.png";
@@ -49,20 +55,69 @@ public class TradingCardInventorySystemGUI {
 
     // Initial menu (shown when no cards/binders/decks exist)
     public void showInitialMenu() {
-        JPanel panel = new JPanel(new GridLayout(3, 1, 10, 10));
+        boolean hasCards = controller.systemHasCards();
+        boolean hasBinders = controller.systemHasBinders();
+        boolean hasDecks = controller.systemHasDecks();
 
+        // Use GridBagLayout for more flexible layout
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10); // Padding
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+
+        // Title
+        JLabel titleLabel = new JLabel("Trading Card Inventory System", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        panel.add(titleLabel, gbc);
+
+        // 1. Always show Add Card
         JButton addCardBtn = createImageButton(ADD_CARD_IMG, "Add New Card");
         addCardBtn.addActionListener(e -> showAddCardScreen());
+        panel.add(addCardBtn, gbc);
 
-        JButton createBinderBtn = createImageButton(CREATE_BINDER_IMG, "Create Binder");
-        createBinderBtn.addActionListener(e -> showCreateBinderScreen());
+        // 2. Binder option (Manage or Create)
+        JButton binderBtn;
+        if (hasBinders) {
+            binderBtn = createImageButton(MANAGE_BINDERS_IMG, "Manage Binders");
+            binderBtn.addActionListener(e -> manageBinders());
+        } else {
+            binderBtn = createImageButton(CREATE_BINDER_IMG, "Create Binder");
+            binderBtn.addActionListener(e -> showCreateBinderScreen());
+        }
+        panel.add(binderBtn, gbc);
 
-        JButton createDeckBtn = createImageButton(CREATE_DECK_IMG, "Create Deck");
-        createDeckBtn.addActionListener(e -> showCreateDeckScreen());
+        // 3. Deck option (Manage or Create)
+        JButton deckBtn;
+        if (hasDecks) {
+            deckBtn = createImageButton(MANAGE_DECKS_IMG, "Manage Decks");
+            deckBtn.addActionListener(e -> manageDecks());
+        } else {
+            deckBtn = createImageButton(CREATE_DECK_IMG, "Create Deck");
+            deckBtn.addActionListener(e -> showCreateDeckScreen());
+        }
+        panel.add(deckBtn, gbc);
 
-        panel.add(addCardBtn);
-        panel.add(createBinderBtn);
-        panel.add(createDeckBtn);
+        // Additional options if cards exist
+        if (hasCards) {
+            JButton adjustCountBtn = createImageButton(ADJUST_COUNT_IMG, "Adjust Card Count");
+            adjustCountBtn.addActionListener(e -> adjustCardCount());
+            panel.add(adjustCountBtn, gbc);
+
+            JButton displayBtn = createImageButton(DISPLAY_IMG, "Display Collection");
+            displayBtn.addActionListener(e -> displayCardOrCollection());
+            panel.add(displayBtn, gbc);
+
+            JButton sellBtn = createImageButton(SELL_IMG, "Sell Card");
+            sellBtn.addActionListener(e -> sellCards());
+            panel.add(sellBtn, gbc);
+        }
+
+        // Exit button
+        JButton exitBtn = createImageButton(EXIT_IMG, "Exit");
+        exitBtn.addActionListener(e -> System.exit(0));
+        panel.add(exitBtn, gbc);
 
         updateMainFrame(panel);
     }
