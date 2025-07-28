@@ -25,6 +25,7 @@ public abstract class CardHolder {
     public boolean addCard(Card card) {
         if (card == null) return false;
         cards.add(card);
+
         return true;
     }
 
