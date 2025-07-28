@@ -65,6 +65,7 @@ public class TradingCardInventorySystemView {
     private JButton removeCardFromBinderButton;
     private JButton tradeOrSellButton;  // Text changes based on binder type
     private JButton deleteBinderButton;
+    private JButton viewCardButton;
 
     // Binder Type Selection Panel
     private JPanel binderTypePanel;
@@ -358,6 +359,7 @@ public class TradingCardInventorySystemView {
         removeCardFromBinderButton.addActionListener(al);
         tradeOrSellButton.addActionListener(al);
         deleteBinderButton.addActionListener(al);
+        viewCardButton.addActionListener(al);
 
         // Binder type buttons
         basicBinderButton.addActionListener(al);
@@ -440,13 +442,16 @@ public class TradingCardInventorySystemView {
         removeCardFromBinderButton = new JButton("Remove Card");
         tradeOrSellButton = new JButton(); // Text set dynamically
         deleteBinderButton = new JButton("Delete Binder");
+        viewCardButton = new JButton("View Card");
 
         // Set action commands
         addCardToBinderButton.setActionCommand("ADD_CARD_TO_BINDER");
         removeCardFromBinderButton.setActionCommand("REMOVE_CARD_FROM_BINDER");
         tradeOrSellButton.setActionCommand("TRADE_OR_SELL_BINDER");
         deleteBinderButton.setActionCommand("DELETE_BINDER");
+        viewCardButton.setActionCommand("VIEW_BINDER_CARD");
 
+        buttonPanel.add(viewCardButton);
         buttonPanel.add(addCardToBinderButton);
         buttonPanel.add(removeCardFromBinderButton);
         buttonPanel.add(tradeOrSellButton);
@@ -535,6 +540,26 @@ public class TradingCardInventorySystemView {
         contentPanelLayout.show(contentPanel, "DISPLAY_CARD");
         returnButton.setText("Return to Main Menu");
     }
+
+    public void displayCardDetails(Card card) {
+        JPanel panel = new JPanel(new BorderLayout());
+        JTextArea textArea = new JTextArea(
+                "Name: " + card.getName() + "\n" +
+                        "Rarity: " + card.getRarity() + "\n" +
+                        "Variant: " + card.getVariant() + "\n" +
+                        "Value: $" + card.getValue() + "\n" +
+                        "Count: " + card.getCount()
+        );
+        textArea.setEditable(false);
+        panel.add(new JScrollPane(textArea), BorderLayout.CENTER);
+
+        JOptionPane.showMessageDialog(
+                mainFrame,
+                panel,
+                "Card Details",
+                JOptionPane.PLAIN_MESSAGE
+        );
+    }
     public String getSelectedCardName() {
         return (String) cardsDropDown.getSelectedItem();
     }
@@ -571,7 +596,91 @@ public class TradingCardInventorySystemView {
         JOptionPane.showMessageDialog(mainFrame, message, "Message", JOptionPane.ERROR_MESSAGE);
     }
 
+    public Card showCardSelectionDialog(List<Card> cards) {
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        for (Card card : cards) {
+            listModel.addElement(card.getName() + " [" + card.getRarity() + "] - $" + card.getValue());
+        }
 
+        JList<String> cardList = new JList<>(listModel);
+        JScrollPane scrollPane = new JScrollPane(cardList);
+
+        int result = JOptionPane.showConfirmDialog(
+                mainFrame,
+                scrollPane,
+                "Select Card to Add",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result == JOptionPane.OK_OPTION && !cardList.isSelectionEmpty()) {
+            return cards.get(cardList.getSelectedIndex());
+        }
+        return null;
+    }
+
+    public Card showTradeCardDialog() {
+        JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
+        JTextField nameField = new JTextField();
+        JComboBox<CardRarity> rarityCombo = new JComboBox<>(CardRarity.values());
+        JComboBox<CardVariant> variantCombo = new JComboBox<>(CardVariant.values());
+        JTextField valueField = new JTextField();
+
+        panel.add(new JLabel("New Card Name:"));
+        panel.add(nameField);
+        panel.add(new JLabel("Rarity:"));
+        panel.add(rarityCombo);
+        panel.add(new JLabel("Variant:"));
+        panel.add(variantCombo);
+        panel.add(new JLabel("Value:"));
+        panel.add(valueField);
+
+        int result = JOptionPane.showConfirmDialog(
+                mainFrame,
+                panel,
+                "Enter New Card Details",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                return new Card(
+                        nameField.getText().trim(),
+                        (CardRarity) rarityCombo.getSelectedItem(),
+                        (CardVariant) variantCombo.getSelectedItem(),
+                        new BigDecimal(valueField.getText()),
+                        1
+                );
+            } catch (NumberFormatException e) {
+                displayMessage("Invalid value entered");
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public boolean confirmAction(String message) {
+        return JOptionPane.showConfirmDialog(
+                mainFrame,
+                message,
+                "Confirm",
+                JOptionPane.YES_NO_OPTION
+        ) == JOptionPane.YES_OPTION;
+    }
+
+    public String promptForCustomPrice(BigDecimal minPrice) {
+        return JOptionPane.showInputDialog(
+                mainFrame,
+                "Enter custom price (minimum $" + minPrice + "):",
+                "Custom Price",
+                JOptionPane.QUESTION_MESSAGE
+        );
+    }
+
+    public void updateBinderCardsList(List<Card> cards) {
+        binderCardsList.setListData(cards.toArray(new Card[0]));
+    }
 
     /**
      * Prompts user to enter a menu choice.
@@ -617,18 +726,13 @@ public class TradingCardInventorySystemView {
 
         return -1;
     }
-    /**
-     * Asks user to confirm an action.
-     *
-     * @param prompt message to show the user
-     * @return true if user confirms, false otherwise
-     */
-    public boolean confirmAction(String prompt) {
+
+    /*public boolean confirmAction(String prompt) {
         System.out.print(prompt + " (yes/no): ");
         String response = sc.nextLine().trim().toLowerCase();
 
         return response.equals("yes") || response.equals("y");
-    }
+    }*/
     public void returningToMainMenu() {
         System.out.println("Returning to main menu.");
     }
@@ -1030,7 +1134,7 @@ public class TradingCardInventorySystemView {
         System.out.println("2. Display Collection");
         System.out.println("0. Back\n");
     }
-    public void displayCardDetails(Card card) {
+    /*public void displayCardDetails(Card card) {
         System.out.println("\n--- Card Details ---");
         System.out.println("Name: " + card.getName());
         System.out.println("Rarity: " + card.getRarity().getName());
@@ -1038,7 +1142,7 @@ public class TradingCardInventorySystemView {
         System.out.printf("Value: $%.2f\n", card.getValue());
         System.out.println("Count: " + card.getCount());
         System.out.println("---------------------");
-    }
+    }*/
     /**
      * Displays the user's entire collection.
      *

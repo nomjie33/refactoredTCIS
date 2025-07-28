@@ -232,22 +232,37 @@ public class TradingCardInventorySystemModel {
         return true;
     }
     /**
-     * Removes card from the specified binder and returns it to the collection.
-     * Checks first if the collection has the card; if the collection does,
-     * then it increments the count of the card in the collection instead.
-     *
-     * @param binder The binder to remove card from.
-     * @param card The card to remove in binder.
+     * Removes a card from a binder and returns it to the collection
+     * @param binder The binder to remove the card from
+     * @param card The card to remove
+     * @return true if removal was successful, false otherwise
      */
-    public void removeCardFromBinder(Binder binder, Card card) {
-        binder.removeCard(card);
+    public boolean removeCardFromBinder(Binder binder, Card card) {
+        // First check if the binder actually contains the card
+        if (!binder.getCards().contains(card)) {
+            return false;
+        }
 
-        if(cardCollection.contains(card)) {
-            cardCollection.get(cardCollection.indexOf(card)).setCount
-                    (cardCollection.get(cardCollection.indexOf(card)).getCount() + 1);
-        } else {
-            card.setCount(1);
-            cardCollection.add(card);
+        // Remove from binder
+        boolean removedFromBinder = binder.removeCard(card);
+        if (!removedFromBinder) {
+            return false;
+        }
+
+        // Add to collection or increment count
+        try {
+            if (cardCollection.contains(card)) {
+                int index = cardCollection.indexOf(card);
+                Card collectionCard = cardCollection.get(index);
+                collectionCard.setCount(collectionCard.getCount() + 1);
+            } else {
+                card.setCount(1);
+                cardCollection.add(card);
+            }
+            return true;
+        } catch (Exception e) {
+            // If any error occurs during collection update, return false
+            return false;
         }
     }
     /**

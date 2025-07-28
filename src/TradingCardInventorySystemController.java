@@ -62,17 +62,81 @@ public class TradingCardInventorySystemController implements ActionListener, Doc
                 }
             }
             case "Return to Binders" -> view.displayManageBindersMenu(model.getBinderNames());
-            case "REMOVE_CARD_FROM_BINDER" -> {
-                int cardIndex = view.getSelectedBinderCardIndex();
-                if (cardIndex >= 0) {
-                    String binderName = view.getCurrentBinderName();
-                    Binder binder = model.getBinder(binderName);
-                    Card card = binder.getCards().get(cardIndex);
+            case "Display Card" -> view.displayCardDetailsMenu(model.getCardCollection());
+            case "ADD_CARD_TO_BINDER" -> {
+                String binderName = view.getCurrentBinderName();
+                Binder binder = model.getBinder(binderName);
 
-                    model.removeCardFromBinder(binder, card);
+                if (model.getCardCollection().isEmpty()) {
+                    view.displayErrorMessage("No cards in collection to add");
+                    return;
+                }
+
+                Card selectedCard = view.showCardSelectionDialog(model.getCardCollection());
+                if (selectedCard != null) {
+                    if (model.addCardToBinder(binder, selectedCard)) {
+                        view.updateBinderCardsList(binder.getCards());
+                        view.displayMessage("Card added to binder");
+                    } else {
+                        view.displayErrorMessage("Cannot add card - invalid type or count");
+                    }
                 }
             }
-            case "Display Card" -> view.displayCardDetailsMenu(model.getCardCollection());
+
+            case "REMOVE_CARD_FROM_BINDER" -> {
+                String binderName = view.getCurrentBinderName();
+                if (model.getBinder(binderName).isEmpty()) {
+                    view.displayErrorMessage("No cards in binder to remove");
+                    return;
+                }
+                Binder binder = model.getBinder(binderName);
+                int selectedIndex = view.getSelectedBinderCardIndex();
+
+                if (selectedIndex >= 0 && model.removeCardFromBinder(binder,
+                        binder.getCards().get(selectedIndex))) {
+                    view.updateBinderCardsList(binder.getCards());
+                    view.displayMessage("Card removed");
+                }
+            }
+
+            case "TRADE_OR_SELL_BINDER" -> {
+                String binderName = view.getCurrentBinderName();
+                Binder binder = model.getBinder(binderName);
+
+                if (model.isSellableBinder(binder)) {
+                    handleSellBinder(binder);
+                } else {
+                    handleTradeCard(binder);
+                }
+            }
+
+            case "DELETE_BINDER" -> {
+                String binderName = view.getCurrentBinderName();
+                Binder binder = model.getBinder(binderName);
+
+                if (view.confirmAction("Delete binder and return cards to collection?")) {
+                    if (model.deleteBinder(binder)) {
+                        view.displayMessage("Binder deleted");
+                        view.displayManageBindersMenu(model.getBinderNames());
+                    }
+                }
+            }
+
+            case "VIEW_BINDER_CARD" -> {
+                String binderName = view.getCurrentBinderName();
+                if (model.getBinder(binderName).isEmpty()) {
+                    view.displayErrorMessage("No cards in binder to view");
+                    return;
+                }
+                int selectedIndex = view.getSelectedBinderCardIndex();
+                if (selectedIndex >= 0) {
+                    Binder binder = model.getBinder(view.getCurrentBinderName());
+                    Card selectedCard = binder.getCards().get(selectedIndex);
+                    view.displayCardDetails(selectedCard);
+                } else {
+                    view.displayErrorMessage("No card selected");
+                }
+            }
         }
     }
 
@@ -96,6 +160,89 @@ public class TradingCardInventorySystemController implements ActionListener, Doc
                 view.displayManageBindersMenu(model.getBinderNames());
             } else {
                 view.displayError("Binder creation failed (name exists)");
+            }
+        }
+    }
+
+    private void handleSellBinder(Binder binder) {
+        // Validate binder can be sold
+        if (!model.isSellableBinder(binder)){
+            view.displayErrorMessage("This binder type cannot be sold");
+            return;
+        }
+
+        if (binder.getCards().isEmpty()) {
+            view.displayErrorMessage("Cannot sell empty binder");
+            return;
+        }
+
+        // Calculate base price
+        SellableBinder sellable = (SellableBinder) binder;
+        BigDecimal price = sellable.calculatePrice();
+
+        // Handle luxury binder custom pricing
+        if (binder instanceof LuxuryBinder) {
+            LuxuryBinder luxury = (LuxuryBinder) binder;
+            BigDecimal baseValue = luxury.calculateBaseValue();
+
+            if (view.confirmAction("Set custom price? (Base value: $" + baseValue + ")")) {
+                String input = view.promptForCustomPrice(baseValue);
+
+                // Validate custom price input
+                if (input == null || input.trim().isEmpty()) {
+                    return; // User cancelled
+                }
+
+                try {
+                    BigDecimal customPrice = new BigDecimal(input);
+                    if (customPrice.compareTo(baseValue) >= 0) {
+                        luxury.setCustomPrice(customPrice);
+                        price = customPrice;
+                    } else {
+                        view.displayErrorMessage("Price must be at least $" + baseValue);
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    view.displayErrorMessage("Invalid price format");
+                    return;
+                }
+            }
+        }
+
+        // Confirm final sale
+        if (view.confirmAction("Sell '" + binder.getName() + "' for $" + price + "?")) {
+            if (model.sellBinder(binder)) {
+                view.displayMessage("Binder sold for $" + price);
+                view.displayManageBindersMenu(model.getBinderNames());
+            } else {
+                view.displayErrorMessage("Failed to complete sale");
+            }
+        }
+    }
+
+    private void handleTradeCard(Binder binder) {
+        int selectedIndex = view.getSelectedBinderCardIndex();
+        if (selectedIndex < 0) {
+            view.displayErrorMessage("No card selected");
+            return;
+        }
+
+        Card outgoingCard = binder.getCards().get(selectedIndex);
+        Card incomingCard = view.showTradeCardDialog();
+
+        if (incomingCard != null) {
+            BigDecimal difference = incomingCard.getValue().subtract(outgoingCard.getValue()).abs();
+            if (difference.compareTo(new BigDecimal("5.00")) > 0) {
+                if (!view.confirmAction("Value difference is $" + difference + ". Proceed?")) {
+                    return;
+                }
+            }
+
+            if (model.executeTrade(binder, incomingCard, outgoingCard)) {
+                view.updateBinderCardsList(binder.getCards());
+                view.displayMessage("Trade successful!");
+            } else {
+                view.displayErrorMessage("Trade failed. Check binder requirements.");
             }
         }
     }
