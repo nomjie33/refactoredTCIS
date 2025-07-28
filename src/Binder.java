@@ -26,6 +26,7 @@ public class Binder extends CardHolder {
         if (getCardsCount() >= MAX_CARD_COUNT) {
             return false;
         }
+
         return super.addCard(card);
     }
 

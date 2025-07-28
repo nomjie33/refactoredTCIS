@@ -1,17 +1,15 @@
+import javax.swing.event.*;
+import java.awt.event.*;
 import java.math.BigDecimal;
 import java.util.List;
+
 /**
      * Controller class for the Trading Card Inventory System.
      * Coordinates interactions between the model and the view.
      */
-public class TradingCardInventorySystemController {
+public class TradingCardInventorySystemController implements ActionListener, DocumentListener {
     private final TradingCardInventorySystemModel model;
     private final TradingCardInventorySystemView view;
-    private TradingCardInventorySystemGUI gui;
-
-    public void setGUI(TradingCardInventorySystemGUI gui) {
-        this.gui = gui;
-    }
     /**
      * Constructs a controller for the inventory system.
      *
@@ -21,61 +19,85 @@ public class TradingCardInventorySystemController {
     public TradingCardInventorySystemController(TradingCardInventorySystemModel model, TradingCardInventorySystemView view) {
         this.model = model;
         this.view = view;
+
+        view.setActionListener(this);
+        view.setDocumentListener(this);
     }
 
-    // New GUI-specific methods
-    public void handleAddCardFromGUI(String name, CardRarity rarity, CardVariant variant, String valueStr) {
-        if (gui == null) return;
-        try {
-            BigDecimal value = new BigDecimal(valueStr);
-            if (name == null || name.isBlank() || value.compareTo(BigDecimal.ZERO) <= 0) {
-                gui.showError("Invalid input");
-                return;
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        switch (ae.getActionCommand()) {
+            case "Return to Main Menu" -> view.displayMainMenu(model.hasCards(), model.hasBinders(), model.hasDecks());
+            case "Exit" -> System.exit(0);
+            case "Add Card" -> view.displayAddCardMenu();
+            case "CONFIRM_ADD_CARD" -> {
+                String cardName = view.getAddCardName();
+                CardRarity rarity = view.getAddCardRarity();
+                CardVariant variant = view.getAddCardVariant();
+                BigDecimal value = view.getAddCardValue();
+
+                if(cardName.isEmpty()) {
+                    view.displayErrorMessage("Card name cannot be empty.");
+                } else if(value == null || value.compareTo(BigDecimal.ZERO) <= 0) {
+                    view.displayErrorMessage("Card value must be greater than zeroooooooo.");
+                } else {
+                    model.addCardToCollection(cardName, rarity, variant, value);
+                    view.displayMessage("Card added successfully!");
+
+                    view.displayMainMenu(model.hasCards(), model.hasBinders(), model.hasDecks());
+                }
             }
+            case "Create a new Binder" -> view.displayBinderTypeMenu();
+            case "CREATE_BASIC_BINDER" -> createBinder(1);
+            case "CREATE_PAUPER_BINDER" -> createBinder(2);
+            case "CREATE_RARES_BINDER" -> createBinder(3);
+            case "CREATE_LUXURY_BINDER" -> createBinder(4);
+            case "CREATE_COLLECTOR_BINDER" -> createBinder(5);
+            case "Manage Binders" -> view.displayManageBindersMenu(model.getBinderNames());
+            case "SELECT_BINDER" -> {
+                int index = view.getSelectedBinderIndex();
+                if(index >= 0){
+                    Binder binder = model.getBinder(index);
+                    view.displaySingleBinderMenu(binder.getName(), model.isSellableBinder(binder));
+                }
+            }
+            case "Return to Binders" -> view.displayManageBindersMenu(model.getBinderNames());
+            case "REMOVE_CARD_FROM_BINDER" -> {
+                int cardIndex = view.getSelectedBinderCardIndex();
+                if (cardIndex >= 0) {
+                    String binderName = view.getCurrentBinderName();
+                    Binder binder = model.getBinder(binderName);
+                    Card card = binder.getCards().get(cardIndex);
 
-            model.addCardToCollection(name, rarity, variant, value);
-            gui.showSuccess("Card added successfully!");
-            gui.showInitialMenu();
-        } catch (NumberFormatException e) {
-            gui.showError("Invalid value format");
+                    model.removeCardFromBinder(binder, card);
+                }
+            }
+            case "Display Card" -> view.displayCardDetailsMenu(model.getCardCollection());
         }
     }
 
-    public void handleCreateBinderFromGUI(String name, int binderType) {
-        if (name == null || name.isBlank()) {
-            gui.showError("Binder name cannot be empty");
-            return;
+    @Override
+    public void insertUpdate(DocumentEvent de) {
+
+    }
+    @Override
+    public void removeUpdate(DocumentEvent de) {
+
+    }
+    @Override
+    public void changedUpdate(DocumentEvent de) {
+
+    }
+
+    private void createBinder(int type) {
+        String name = view.promptForBinderName();
+        if (name != null && !name.trim().isEmpty()) {
+            if (model.createBinder(name.trim(), type)) {
+                view.displayManageBindersMenu(model.getBinderNames());
+            } else {
+                view.displayError("Binder creation failed (name exists)");
+            }
         }
-
-        if (model.createBinder(name, binderType)) {
-            gui.showSuccess("Binder created successfully!");
-            gui.showInitialMenu();
-        } else {
-            gui.showError("Binder creation failed (name might exist)");
-        }
-    }
-
-    public void handleCreateDeckFromGUI(String name, boolean sellable) {
-        if (name == null || name.isBlank()) {
-            gui.showError("Deck name cannot be empty");
-            return;
-        }
-
-        model.createDeck(name, sellable);
-        gui.showSuccess("Deck created successfully!");
-        gui.showInitialMenu();
-    }
-    // for GUI main menu updates
-    public boolean systemHasCards() {
-        return model.hasCards();
-    }
-
-    public boolean systemHasBinders() {
-        return model.hasBinders();
-    }
-
-    public boolean systemHasDecks() {
-        return model.hasDecks();
     }
     /**
      * Starts the main program loop and displays the menu system.
@@ -147,57 +169,52 @@ public class TradingCardInventorySystemController {
      * Adds a new card to the collection or adjusts count if duplicate exists.
      */
     private void addCard() {
-        if(gui != null){
-            gui.showAddCardScreen();
-        } else {
-            String name = view.promptForCardName();
+        String name = view.promptForCardName();
 
-            if(name == null || name.isBlank()) {
-                view.returningToMainMenu();
-                return;
-            }
-
-            Card existing = model.getCardFromCollection(name);
-
-            if(existing != null) {
-                System.out.println("A card with that name already exists.");
-
-                if(view.confirmAction("Do you want to increase its count instead?")) {
-                    int adjustment = view.promptForCardAdjustment();
-
-                    if(model.adjustCardCount(existing, adjustment)) {
-                        System.out.println("Card count updated.");
-                    } else {
-                        view.displayError("Invalid adjustment.");
-                    }
-                } else {
-                    System.out.println("No changes made.");
-                }
-                return;
-            }
-
-            CardRarity rarity = view.promptForCardRarity();
-            if(rarity == null) {
-                view.returningToMainMenu();
-                return;
-            }
-
-            CardVariant variant = view.promptForCardVariant(rarity);
-            if(variant == null) {
-                view.returningToMainMenu();
-                return;
-            }
-
-            BigDecimal value = view.promptForCardValue();
-            if(value == null || value.compareTo(BigDecimal.ZERO) < 0) {
-                view.returningToMainMenu();
-                return;
-            }
-
-            model.addCardToCollection(name, rarity, variant, value);
-            System.out.println("Card successfully added!");
+        if(name == null || name.isBlank()) {
+            view.returningToMainMenu();
+            return;
         }
 
+        Card existing = model.getCardFromCollection(name);
+
+        if(existing != null) {
+            System.out.println("A card with that name already exists.");
+
+            if(view.confirmAction("Do you want to increase its count instead?")) {
+                int adjustment = view.promptForCardAdjustment();
+
+                if(model.adjustCardCount(existing, adjustment)) {
+                    System.out.println("Card count updated.");
+                } else {
+                    view.displayError("Invalid adjustment.");
+                }
+            } else {
+                System.out.println("No changes made.");
+            }
+            return;
+        }
+
+        CardRarity rarity = view.promptForCardRarity();
+        if(rarity == null) {
+            view.returningToMainMenu();
+            return;
+        }
+
+        CardVariant variant = view.promptForCardVariant(rarity);
+        if(variant == null) {
+            view.returningToMainMenu();
+            return;
+        }
+
+        BigDecimal value = view.promptForCardValue();
+        if(value == null || value.compareTo(BigDecimal.ZERO) < 0) {
+            view.returningToMainMenu();
+            return;
+        }
+
+        model.addCardToCollection(name, rarity, variant, value);
+        System.out.println("Card successfully added!");
     }
 
 
@@ -270,10 +287,13 @@ public class TradingCardInventorySystemController {
                 case 2 -> {  // Add Card
                     if (binder.getCardsCount() < Binder.MAX_CARD_COUNT) {
                         List<Card> collection = model.getCardCollection();
+
                         if (view.displayCollection(collection)) {
                             int index = view.getCardChoice();
+
                             if (index >= 0 && index < collection.size()) {
                                 Card selected = model.getCardFromCollection(index);
+
                                 if (!model.addCardToBinder(binder, selected)) {
                                     view.displayError("Cannot add card - invalid type or count");
                                 } else {
@@ -648,35 +668,5 @@ public class TradingCardInventorySystemController {
                 System.out.println("Deck sold successfully!");
             } else {view.displayError("Cannot sell this deck");}
         }
-    }
-
-    // helpers for managebinder methods in GUI
-
-    public List<String> getBinderNames() {
-        return model.getBinderNames();
-    }
-
-    public Binder getBinder(int index) {
-        return model.getBinder(index);
-    }
-
-    public void removeCardFromBinder(Binder binder, Card card) {
-        model.removeCardFromBinder(binder, card);
-    }
-
-    public boolean isSellableBinder(Binder binder) {
-        return model.isSellableBinder(binder);
-    }
-
-    public List<Card> getCardCollection() {
-        return model.getCardCollection();
-    }
-
-    public boolean addCardToBinder(Binder binder, Card card) {
-        return model.addCardToBinder(binder, card);
-    }
-
-    public Card getCardFromCollection(int index) {
-        return model.getCardFromCollection(index);
     }
 }

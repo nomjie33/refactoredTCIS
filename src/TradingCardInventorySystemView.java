@@ -1,3 +1,7 @@
+import javax.swing.*;
+import javax.swing.event.DocumentListener;
+import java.awt.*;
+import java.awt.event.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -11,13 +15,563 @@ import java.util.Scanner;
  */
 public class TradingCardInventorySystemView {
     private final Scanner sc;
+    private final JFrame mainFrame;
+    private final JLabel menuTitle;
+    private final JButton returnButton;
+    private final JPanel contentPanel;
+    private final CardLayout contentPanelLayout;
+
+    // Main Menu panel
+    private final JPanel mainMenuPanel;
+    private final JButton addCardButton;
+    private final JButton manageBindersButton;
+    private final JButton manageDecksButton;
+    private final JButton adjustCardCountButton;
+    private final JButton displayCardButton;
+    private final JButton displayCollectionButton;
+    private final JButton sellCardButton;
+
+    // Add Card panel
+    private final JPanel addCardPanel;
+    private final JLabel nameFieldLabel;
+    private final JTextField nameField;
+    private final JLabel selectRarityLabel;
+    private final JPanel rarityButtonsPanel;
+    private final ButtonGroup rarityButtons;
+    private final JToggleButton commonButton;
+    private final JToggleButton uncommonButton;
+    private final JToggleButton rareButton;
+    private final JToggleButton legendaryButton;
+    private final JLabel selectVariantLabel;
+    private final JPanel variantButtonsPanel;
+    private final ButtonGroup variantButtons;
+    private final JToggleButton normalButton;
+    private final JToggleButton extendedArtButton;
+    private final JToggleButton fullArtButton;
+    private final JToggleButton altArtButton;
+    private final JLabel valueFieldLabel;
+    private final JTextField valueField;
+    private final JButton confirmAddCardButton;
+
+    // Manage Binders Panel
+    private JPanel manageBindersPanel;
+    private JList<String> bindersList;
+    private JButton selectBinderButton;
+
+    // Single Binder Panel
+    private JPanel singleBinderPanel;
+    private JList<Card> binderCardsList;
+    private JButton addCardToBinderButton;
+    private JButton removeCardFromBinderButton;
+    private JButton tradeOrSellButton;  // Text changes based on binder type
+    private JButton deleteBinderButton;
+
+    // Binder Type Selection Panel
+    private JPanel binderTypePanel;
+    private JButton basicBinderButton;
+    private JButton pauperBinderButton;
+    private JButton raresBinderButton;
+    private JButton luxuryBinderButton;
+    private JButton collectorBinderButton;
+
+    // Display Card panel
+    private final JPanel displayCardPanel;
+    JComboBox<Card> cardsDropDown;
+    private final JTextArea displayCardTextArea;
 
     /**
      * Constructs the view and initializes the scanner.
      */
     public TradingCardInventorySystemView() {
         this.sc = new Scanner(System.in);
+        
+        mainFrame = new JFrame("Trading Card Inventory System");
+        mainFrame.setLayout(new BorderLayout());
+        
+
+        // Title label for current menu
+        menuTitle = new JLabel();
+        menuTitle.setPreferredSize(new Dimension(100, 80));
+        menuTitle.setFont(new Font("Tahoma", Font.BOLD, 30));
+        menuTitle.setHorizontalAlignment(SwingConstants.CENTER);
+        menuTitle.setVerticalAlignment(SwingConstants.CENTER);
+        mainFrame.add(menuTitle, BorderLayout.NORTH);
+
+        // South panel (for return to main menu/exit button)
+        returnButton = new JButton();
+        returnButton.setPreferredSize(new Dimension(150, 25));
+        JPanel returnButtonPanel = new JPanel();
+        returnButtonPanel.add(returnButton);
+        mainFrame.add(returnButtonPanel, BorderLayout.SOUTH);
+
+        // Center panel for menu contents
+        contentPanel = new JPanel();
+        contentPanel.setLayout(new CardLayout());
+        mainFrame.add(contentPanel, BorderLayout.CENTER);
+
+
+        // Main menu buttons
+        addCardButton = new JButton("Add Card");
+        manageBindersButton = new JButton();
+        manageDecksButton = new JButton();
+        adjustCardCountButton = new JButton("Adjust Card Count");
+        displayCardButton = new JButton("Display Card");
+        displayCollectionButton = new JButton("Display Collection");
+        sellCardButton = new JButton("Sell Card");
+
+        // Panel for main menu; holds main menu buttons
+        mainMenuPanel = new JPanel();
+        mainMenuPanel.setLayout(new GridBagLayout());
+        mainMenuPanel.setBackground(Color.LIGHT_GRAY);
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        gbc.gridx = 0;
+        gbc.insets = new Insets(10, 0, 10, 0);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridwidth = 1;
+        gbc.gridheight = 1;
+
+        mainMenuPanel.add(addCardButton, gbc);
+        mainMenuPanel.add(manageBindersButton, gbc);
+        mainMenuPanel.add(manageDecksButton, gbc);
+        mainMenuPanel.add(adjustCardCountButton, gbc);
+        mainMenuPanel.add(displayCardButton, gbc);
+        mainMenuPanel.add(displayCollectionButton, gbc);
+        mainMenuPanel.add(sellCardButton, gbc);
+
+
+        // Add Card menu components
+        nameFieldLabel = new JLabel("Name");
+        nameFieldLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
+//        JLabel nameWarningLabel = new JLabel("Invalid name.");
+//        nameWarningLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+//        nameWarningLabel.setForeground(Color.RED);
+//        nameWarningLabel.setVisible(false);
+//        nameLabelPanel = new JPanel(new GridLayout(1, 2, 50, 0));
+//        nameLabelPanel.setBackground(Color.LIGHT_GRAY);
+//        nameLabelPanel.add(nameFieldLabel);
+//        nameLabelPanel.add(nameWarningLabel);
+
+        nameField = new JTextField(20);
+        nameField.setPreferredSize(new Dimension(150, 30));
+        nameField.setFont(new Font("Tahoma", Font.PLAIN, 14));
+
+        selectRarityLabel = new JLabel("Select Rarity");
+        selectRarityLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
+
+        commonButton = new JToggleButton("Common");
+        commonButton.setActionCommand("COMMON");
+        uncommonButton = new JToggleButton("Uncommon");
+        uncommonButton.setActionCommand("UNCOMMON");
+        rareButton = new JToggleButton("Rare");
+        rareButton.setActionCommand("RARE");
+        legendaryButton = new JToggleButton("Legendary");
+        legendaryButton.setActionCommand("LEGENDARY");
+        rarityButtons = new ButtonGroup();
+        rarityButtons.add(commonButton);
+        rarityButtons.add(uncommonButton);
+        rarityButtons.add(rareButton);
+        rarityButtons.add(legendaryButton);
+        rarityButtonsPanel = new JPanel(new GridLayout(1, 4));
+        rarityButtonsPanel.add(commonButton);
+        rarityButtonsPanel.add(uncommonButton);
+        rarityButtonsPanel.add(rareButton);
+        rarityButtonsPanel.add(legendaryButton);
+
+        selectVariantLabel = new JLabel("Select Variant");
+        selectVariantLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
+
+        normalButton = new JToggleButton("Normal");
+        normalButton.setActionCommand("NORMAL");
+        extendedArtButton = new JToggleButton("Extended-art");
+        extendedArtButton.setActionCommand("EXTENDED_ART");
+        fullArtButton = new JToggleButton("Full-art");
+        fullArtButton.setActionCommand("FULL_ART");
+        altArtButton = new JToggleButton("Alt-art");
+        altArtButton.setActionCommand("ALT_ART");
+        variantButtons = new ButtonGroup();
+        commonButton.setSelected(true);     // set default rarity
+        variantButtons.add(normalButton);
+        variantButtons.add(extendedArtButton);
+        variantButtons.add(fullArtButton);
+        variantButtons.add(altArtButton);
+        variantButtonsPanel = new JPanel(new GridLayout(1, 4));
+        normalButton.setSelected(true);     // set default variant
+        variantButtonsPanel.add(normalButton);
+        variantButtonsPanel.add(extendedArtButton);
+        variantButtonsPanel.add(fullArtButton);
+        variantButtonsPanel.add(altArtButton);
+
+        valueFieldLabel = new JLabel("Value (in $)");
+        valueFieldLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
+
+        valueField = new JTextField(5);
+        valueField.setPreferredSize(new Dimension(150, 30));
+        valueField.setFont(new Font("Tahoma", Font.PLAIN, 14));
+
+        confirmAddCardButton = new JButton("Confirm");
+        confirmAddCardButton.setActionCommand("CONFIRM_ADD_CARD");
+
+        // Panel for Add Card menu; holds Add Card buttons
+        addCardPanel = new JPanel();
+        addCardPanel.setLayout(new GridBagLayout());
+        addCardPanel.setBackground(Color.LIGHT_GRAY);
+
+        gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.gridheight = 1;
+
+        gbc.insets = new Insets(0, 0, 0, 190);
+        addCardPanel.add(nameFieldLabel, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        addCardPanel.add(nameField, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        addCardPanel.add(selectRarityLabel, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        addCardPanel.add(rarityButtonsPanel, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        addCardPanel.add(selectVariantLabel, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        addCardPanel.add(variantButtonsPanel, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        addCardPanel.add(valueFieldLabel, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 30, 0);
+        addCardPanel.add(valueField, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        addCardPanel.add(confirmAddCardButton, gbc);
+
+
+        // Display Card menu components
+        JLabel cardsDropDownLabel = new JLabel("Select Card");
+        cardsDropDownLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
+
+        cardsDropDown = new JComboBox<>();
+
+        displayCardTextArea = new JTextArea("""
+                Rarity:
+                
+                Variant:
+                
+                Value:
+                
+                Count:
+                """);
+        displayCardTextArea.setBackground(Color.LIGHT_GRAY);
+        displayCardTextArea.setFont(new Font("Tahoma", Font.PLAIN, 18));
+        displayCardTextArea.setPreferredSize(new Dimension(300, 300));
+        displayCardTextArea.setEditable(false);
+        displayCardTextArea.setFocusable(false);
+        displayCardTextArea.setLineWrap(true);
+
+        // Panel for Display Card menu
+        displayCardPanel = new JPanel(new GridBagLayout());
+        displayCardPanel.setBackground(Color.LIGHT_GRAY);
+
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 0, 10, 0);
+        displayCardPanel.add(cardsDropDownLabel, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        displayCardPanel.add(cardsDropDown, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(100, 0, 0, 0);
+        displayCardPanel.add(displayCardTextArea, gbc);
+
+
+        // Initialize Binder Panels
+        initManageBindersPanel();
+        initSingleBinderPanel();
+        initBinderTypePanel();
+
+        // Add all menu panels to the main content panel
+        contentPanel.add(mainMenuPanel, "MAIN_MENU");
+        contentPanel.add(addCardPanel, "ADD_CARD");
+        contentPanel.add(manageBindersPanel, "MANAGE_BINDERS");
+        contentPanel.add(singleBinderPanel, "SINGLE_BINDER");
+        contentPanel.add(binderTypePanel, "BINDER_TYPE");
+        contentPanel.add(displayCardPanel, "DISPLAY_CARD");
+
+        contentPanelLayout = (CardLayout) contentPanel.getLayout();
+
+        // Resize buttons
+        JButton[] buttons = {addCardButton, manageBindersButton, manageDecksButton,
+                adjustCardCountButton, displayCardButton, displayCollectionButton, sellCardButton};
+        for(JButton button : buttons) {
+            button.setPreferredSize(new Dimension(200, 50));
+            button.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        }
+
+        // Initialize main GUI window
+        mainFrame.setSize(540, 699);
+        mainFrame.setVisible(true);
+        mainFrame.setResizable(false);
+        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
+
+    public void setActionListener(ActionListener al) {
+        returnButton.addActionListener(al);
+
+        // Main menu buttons
+        addCardButton.addActionListener(al);
+        manageBindersButton.addActionListener(al);
+        manageDecksButton.addActionListener(al);
+        adjustCardCountButton.addActionListener(al);
+        displayCardButton.addActionListener(al);
+        displayCollectionButton.addActionListener(al);
+        sellCardButton.addActionListener(al);
+
+        // Add Card menu buttons
+        commonButton.addActionListener(al);
+        uncommonButton.addActionListener(al);
+        rareButton.addActionListener(al);
+        legendaryButton.addActionListener(al);
+        normalButton.addActionListener(al);
+        extendedArtButton.addActionListener(al);
+        fullArtButton.addActionListener(al);
+        altArtButton.addActionListener(al);
+        confirmAddCardButton.addActionListener(al);
+
+        // Binder Management Listeners
+        manageBindersButton.addActionListener(al);  // Reused for Create/Manage
+        selectBinderButton.addActionListener(al);
+        addCardToBinderButton.addActionListener(al);
+        removeCardFromBinderButton.addActionListener(al);
+        tradeOrSellButton.addActionListener(al);
+        deleteBinderButton.addActionListener(al);
+
+        // Binder type buttons
+        basicBinderButton.addActionListener(al);
+        pauperBinderButton.addActionListener(al);
+        raresBinderButton.addActionListener(al);
+        luxuryBinderButton.addActionListener(al);
+        collectorBinderButton.addActionListener(al);
+
+        // Display Card
+        cardsDropDown.addActionListener(e -> {
+            Card selected = (Card) cardsDropDown.getSelectedItem();
+
+            if(selected != null) {
+                displayCardTextArea.setText(
+                        "Rarity: " + selected.getRarity().getName() +
+                        "\n\nVariant: " + selected.getVariant().getName() +
+                        "\n\nValue: " + selected.getValue().toString() +
+                        "\n\nCount: " + selected.getCount());
+            }
+            }
+            );
+    }
+    public void setDocumentListener(DocumentListener dl) {
+        // Add Card menu text fields
+        nameField.getDocument().addDocumentListener(dl);
+        valueField.getDocument().addDocumentListener(dl);
+    }
+
+    // Take input for card to add to the collection
+    public String getAddCardName() {
+        return nameField.getText();
+    }
+    public CardRarity getAddCardRarity() {
+        ButtonModel selected = rarityButtons.getSelection();
+
+        return CardRarity.valueOf(selected.getActionCommand());
+    }
+    public CardVariant getAddCardVariant() {
+        ButtonModel selected = variantButtons.getSelection();
+
+        return CardVariant.valueOf(selected.getActionCommand());
+    }
+    public BigDecimal getAddCardValue() {
+        if(!valueField.getText().isEmpty()) {
+//            BigDecimal value = new BigDecimal(valueField.getText());
+//
+//            return value.setScale(2, RoundingMode.HALF_UP);
+            return new BigDecimal(valueField.getText());
+        } else {
+            return null;
+        }
+    }
+
+    private void initManageBindersPanel() {
+        manageBindersPanel = new JPanel(new BorderLayout());
+
+        // Binders List
+        bindersList = new JList<>();
+        JScrollPane scrollPane = new JScrollPane(bindersList);
+
+        // Select Button (only used when binders exist)
+        selectBinderButton = new JButton("Select Binder");
+        selectBinderButton.setActionCommand("SELECT_BINDER");
+
+        manageBindersPanel.add(scrollPane, BorderLayout.CENTER);
+        manageBindersPanel.add(selectBinderButton, BorderLayout.SOUTH);
+        bindersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    }
+
+    private void initSingleBinderPanel() {
+        singleBinderPanel = new JPanel(new BorderLayout());
+
+        // Cards in Binder List
+        binderCardsList = new JList<>();
+        JScrollPane scrollPane = new JScrollPane(binderCardsList);
+
+        // Action Buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(4, 1));
+        addCardToBinderButton = new JButton("Add Card");
+        removeCardFromBinderButton = new JButton("Remove Card");
+        tradeOrSellButton = new JButton(); // Text set dynamically
+        deleteBinderButton = new JButton("Delete Binder");
+
+        // Set action commands
+        addCardToBinderButton.setActionCommand("ADD_CARD_TO_BINDER");
+        removeCardFromBinderButton.setActionCommand("REMOVE_CARD_FROM_BINDER");
+        tradeOrSellButton.setActionCommand("TRADE_OR_SELL_BINDER");
+        deleteBinderButton.setActionCommand("DELETE_BINDER");
+
+        buttonPanel.add(addCardToBinderButton);
+        buttonPanel.add(removeCardFromBinderButton);
+        buttonPanel.add(tradeOrSellButton);
+        buttonPanel.add(deleteBinderButton);
+
+        singleBinderPanel.add(scrollPane, BorderLayout.CENTER);
+        singleBinderPanel.add(buttonPanel, BorderLayout.EAST);
+        binderCardsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    }
+    public int getSelectedBinderIndex() {
+        return bindersList.getSelectedIndex();
+    }
+    public int getSelectedBinderCardIndex() {
+        return binderCardsList.getSelectedIndex();
+    }
+    public String getCurrentBinderName() {
+        return menuTitle.getText().replace("Binder: ", "");
+    }
+
+    public void displayManageBindersMenu(List<String> binderNames) {
+        menuTitle.setText("Manage Binders");
+        bindersList.setListData(binderNames.toArray(new String[0]));
+        contentPanelLayout.show(contentPanel, "MANAGE_BINDERS");
+        returnButton.setText("Return to Main Menu");
+    }
+
+    public void displaySingleBinderMenu(String binderName, boolean isSellable) {
+        menuTitle.setText("Binder: " + binderName);
+        tradeOrSellButton.setText(isSellable ? "Sell Binder" : "Trade Card");
+        contentPanelLayout.show(contentPanel, "SINGLE_BINDER");
+        returnButton.setText("Return to Binders");
+    }
+
+    private void initBinderTypePanel() {
+        binderTypePanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridwidth = 1;
+        gbc.gridheight = 1;
+        gbc.insets = new Insets(10, 0, 10, 0); // Spacing
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Title
+        menuTitle.setText("Select Binder Type");
+
+        // Buttons (matches main menu style)
+        basicBinderButton = createMenuButton("1. Basic Binder");
+        pauperBinderButton = createMenuButton("2. Pauper Binder");
+        raresBinderButton = createMenuButton("3. Rares Binder");
+        luxuryBinderButton = createMenuButton("4. Luxury Binder");
+        collectorBinderButton = createMenuButton("5. Collector Binder");
+
+        // Set action commands
+        basicBinderButton.setActionCommand("CREATE_BASIC_BINDER");
+        pauperBinderButton.setActionCommand("CREATE_PAUPER_BINDER");
+        raresBinderButton.setActionCommand("CREATE_RARES_BINDER");
+        luxuryBinderButton.setActionCommand("CREATE_LUXURY_BINDER");
+        collectorBinderButton.setActionCommand("CREATE_COLLECTOR_BINDER");
+
+        // Add to panel
+        gbc.gridy = 0;
+        binderTypePanel.add(basicBinderButton, gbc);
+        gbc.gridy++;
+        binderTypePanel.add(pauperBinderButton, gbc);
+        gbc.gridy++;
+        binderTypePanel.add(raresBinderButton, gbc);
+        gbc.gridy++;
+        binderTypePanel.add(luxuryBinderButton, gbc);
+        gbc.gridy++;
+        binderTypePanel.add(collectorBinderButton, gbc);
+    }
+
+    public void displayBinderTypeMenu(){
+        menuTitle.setText("Select Binder Type");
+        contentPanelLayout.show(contentPanel, "BINDER_TYPE");
+        returnButton.setText("Return to Main Menu");
+    }
+
+    public void displayCardDetailsMenu(List<Card> cards) {
+        cardsDropDown.removeAllItems();
+
+        for(Card card : cards) {
+            cardsDropDown.addItem(card);
+        }
+
+        menuTitle.setText("Display Card Details");
+        contentPanelLayout.show(contentPanel, "DISPLAY_CARD");
+        returnButton.setText("Return to Main Menu");
+    }
+    public String getSelectedCardName() {
+        return (String) cardsDropDown.getSelectedItem();
+    }
+    public void updateCardDetailsMenu(Card card) {
+
+    }
+
+
+    public String promptForBinderName() {
+        String name = JOptionPane.showInputDialog(
+                mainFrame,
+                "Enter binder name:",
+                "Create New Binder",
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        return (name != null && !name.trim().isEmpty()) ? name.trim() : null;
+    }
+
+    private JButton createMenuButton(String text) {
+        JButton button = new JButton(text);
+        button.setPreferredSize(new Dimension(200, 40));
+        button.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        button.setFocusPainted(false);
+        return button;
+    }
+
+    public void displayMessage(String message) {
+        JOptionPane.showMessageDialog(mainFrame, message, "Message", JOptionPane.INFORMATION_MESSAGE);
+
+    }
+
+    public void displayErrorMessage(String message) {
+        JOptionPane.showMessageDialog(mainFrame, message, "Message", JOptionPane.ERROR_MESSAGE);
+    }
+
+
 
     /**
      * Prompts user to enter a menu choice.
@@ -89,7 +643,6 @@ public class TradingCardInventorySystemView {
         sc.close();
     }
 
-
     /**
      * Displays the main menu based on existing system state.
      *
@@ -98,6 +651,7 @@ public class TradingCardInventorySystemView {
      * @param hasDecks whether any decks exist
      */
     public void displayMainMenu(boolean hasCards, boolean hasBinders, boolean hasDecks) {
+        hasCards = true;
         System.out.println("\n=== Trading Card Inventory System ===");
         System.out.println("1. Add a Card");
 
@@ -120,6 +674,41 @@ public class TradingCardInventorySystemView {
         }
 
         System.out.println("0. Exit\n");
+
+
+        menuTitle.setText("Main Menu");
+        contentPanelLayout.show(contentPanel, "MAIN_MENU");
+        returnButton.setText("Exit");
+
+        if(hasBinders) {
+            manageBindersButton.setText("Manage Binders");
+        } else {
+            manageBindersButton.setText("Create a new Binder");
+        }
+
+        if(hasDecks) {
+            manageDecksButton.setText("Manage Decks");
+        } else {
+            manageDecksButton.setText("Create a new Deck");
+        }
+
+        if(!hasCards) {
+            adjustCardCountButton.setVisible(false);
+            displayCardButton.setVisible(false);
+            displayCollectionButton.setVisible(false);
+            sellCardButton.setVisible(false);
+        } else {
+            adjustCardCountButton.setVisible(true);
+            displayCardButton.setVisible(true);
+            displayCollectionButton.setVisible(true);
+            sellCardButton.setVisible(true);
+        }
+    }
+
+    public void displayAddCardMenu() {
+        menuTitle.setText("Add Card");
+        contentPanelLayout.show(contentPanel, "ADD_CARD");
+        returnButton.setText("Return to Main Menu");
     }
 
 
@@ -270,12 +859,12 @@ public class TradingCardInventorySystemView {
      *
      * @return name entered, or empty string to cancel
      */
-    public String promptForBinderName() {
+    /*public String promptForBinderName() {
         System.out.print("Enter binder name (press enter only to return to main menu): ");
         return sc.nextLine().trim();
-    }
+    }*/
 
-    public void displayManageBindersMenu(List<String> binderNames) {
+    /*public void displayManageBindersMenu(List<String> binderNames) {
         System.out.println("\n=== Manage Binders ===");// displays all existing binders
 
         for(int i = 0; i < binderNames.size(); i++) {
@@ -284,7 +873,7 @@ public class TradingCardInventorySystemView {
 
         System.out.println((binderNames.size() + 1) + ". Create a new Binder");
         System.out.println("0. Return to Main Menu\n");
-    }
+    }*/
 
     // Update display method to show sell option only for sellable binders
     public void displayManageSingleBinderMenu(String binderName, boolean isSellable) {
@@ -518,7 +1107,7 @@ public class TradingCardInventorySystemView {
         }
     }
 
-    /// Add deck type selection
+    // Add deck type selection
     public int promptForDeckType() {
         System.out.println("\nSelect deck type:");
         System.out.println("1. Normal Deck (cannot be sold)");
@@ -535,6 +1124,7 @@ public class TradingCardInventorySystemView {
     public BigDecimal promptForPrice(String message) {
         while (true) {
             System.out.print(message + ": ");
+
             try {
                 return new BigDecimal(sc.nextLine()).setScale(2, RoundingMode.HALF_UP);
             } catch (NumberFormatException e) {

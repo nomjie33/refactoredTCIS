@@ -10,7 +10,7 @@ public class TradingCardInventorySystemModel {
     private final ArrayList<Card> cardCollection;
     private final Map<String, Binder> binders;
     private final Map<String, Deck> decks;
-    private BigDecimal collectorMoney = BigDecimal.ZERO;
+    private BigDecimal collectorMoney;
 
     /**
      * Constructs a new TradingCardInventorySystemModel with empty card collection,
@@ -20,6 +20,7 @@ public class TradingCardInventorySystemModel {
         this.cardCollection = new ArrayList<>();
         this.binders = new LinkedHashMap<>();
         this.decks = new LinkedHashMap<>();
+        this.collectorMoney = BigDecimal.ZERO;
     }
     /**
      * Checks if card collection has any cards.
@@ -172,6 +173,9 @@ public class TradingCardInventorySystemModel {
         } else {
             return null;
         }
+    }
+    public Binder getBinder(String name) {
+        return binders.get(name);
     }
 
     /**
@@ -456,10 +460,7 @@ public class TradingCardInventorySystemModel {
     }
 
     public boolean isSellableCard(Card card){
-        if(card.getCount() > 0) {
-            return true;
-        }
-        return false;
+        return card.getCount() > 0;
     }
 
     public boolean isSellableBinder(Binder binder) {

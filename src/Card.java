@@ -1,4 +1,5 @@
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 /**
  * Represents a trading card with a name, rarity, variant, value, and count.
@@ -43,10 +44,10 @@ public class Card {
 
         // Card value multiplier based on variant
         switch(this.variant) {
-            case EXTENDED_ART -> this.value = value.add(value.multiply(new BigDecimal("0.50")));
-            case FULL_ART -> this.value = value.add(value);
-            case ALT_ART -> this.value = value.add(value.multiply(new BigDecimal("2.00")));
-            default -> this.value = value;
+            case EXTENDED_ART -> this.value = (value.add(value.multiply(new BigDecimal("0.50")))).setScale(2, RoundingMode.HALF_UP);
+            case FULL_ART -> this.value = (value.add(value)).setScale(2, RoundingMode.HALF_UP);
+            case ALT_ART -> this.value = (value.add(value.multiply(new BigDecimal("2.00")))).setScale(2, RoundingMode.HALF_UP);
+            default -> this.value = value.setScale(2, RoundingMode.HALF_UP);
         }
     }
     /**
@@ -78,6 +79,10 @@ public class Card {
      *
      * @return card name
      */
+    @Override
+    public String toString() {
+        return name;
+    }
     public String getName() {
         return name;
     }
