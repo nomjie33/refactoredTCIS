@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -23,6 +24,7 @@ public class TradingCardInventorySystemView {
 
     // Main Menu panel
     private final JPanel mainMenuPanel;
+    private final JLabel collectorMoneyLabel;
     private final JButton addCardButton;
     private final JButton manageBindersButton;
     private final JButton manageDecksButton;
@@ -67,12 +69,19 @@ public class TradingCardInventorySystemView {
     private JButton deleteBinderButton;
 
     // Binder Type Selection Panel
-    private JPanel binderTypePanel;
+    private JPanel binderTypesPanel;
     private JButton basicBinderButton;
     private JButton pauperBinderButton;
     private JButton raresBinderButton;
     private JButton luxuryBinderButton;
     private JButton collectorBinderButton;
+
+    // Adjust Card Count panel
+    private final JList<String> adjustCardCountList;
+    private final JScrollPane adjustCardCountScrollPane;
+    private final JLabel adjustCardCountFieldLabel;
+    private final JTextField adjustCardCountField;
+    private final JButton adjustCardCountConfirmButton;
 
     // Display Card panel
     private final JPanel displayCardPanel;
@@ -87,7 +96,6 @@ public class TradingCardInventorySystemView {
         
         mainFrame = new JFrame("Trading Card Inventory System");
         mainFrame.setLayout(new BorderLayout());
-        
 
         // Title label for current menu
         menuTitle = new JLabel();
@@ -99,10 +107,13 @@ public class TradingCardInventorySystemView {
 
         // South panel (for return to main menu/exit button)
         returnButton = new JButton();
-        returnButton.setPreferredSize(new Dimension(150, 25));
-        JPanel returnButtonPanel = new JPanel();
-        returnButtonPanel.add(returnButton);
-        mainFrame.add(returnButtonPanel, BorderLayout.SOUTH);
+        returnButton.setPreferredSize(new Dimension(150, 30));
+        collectorMoneyLabel = new JLabel("Collector Money: $0.00");
+        JPanel southPanel = new JPanel(new GridLayout(1, 3, 15, 0));
+        southPanel.add(Box.createRigidArea(new Dimension(0, 0)));
+        southPanel.add(returnButton);
+        southPanel.add(collectorMoneyLabel);
+        mainFrame.add(southPanel, BorderLayout.SOUTH);
 
         // Center panel for menu contents
         contentPanel = new JPanel();
@@ -110,7 +121,7 @@ public class TradingCardInventorySystemView {
         mainFrame.add(contentPanel, BorderLayout.CENTER);
 
 
-        // Main menu buttons
+        // Main menu components
         addCardButton = new JButton("Add Card");
         manageBindersButton = new JButton();
         manageDecksButton = new JButton();
@@ -118,6 +129,13 @@ public class TradingCardInventorySystemView {
         displayCardButton = new JButton("Display Card");
         displayCollectionButton = new JButton("Display Collection");
         sellCardButton = new JButton("Sell Card");
+        // Resize buttons
+        JButton[] buttons = {addCardButton, manageBindersButton, manageDecksButton,
+                adjustCardCountButton, displayCardButton, displayCollectionButton, sellCardButton};
+        for(JButton button : buttons) {
+            button.setPreferredSize(new Dimension(200, 50));
+            button.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        }
 
         // Panel for main menu; holds main menu buttons
         mainMenuPanel = new JPanel();
@@ -181,7 +199,7 @@ public class TradingCardInventorySystemView {
 
         selectVariantLabel = new JLabel("Select Variant");
         selectVariantLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
-
+        sellCardButton.setActionCommand("SELL_CARD");
         normalButton = new JToggleButton("Normal");
         normalButton.setActionCommand("NORMAL");
         extendedArtButton = new JToggleButton("Extended-art");
@@ -259,6 +277,46 @@ public class TradingCardInventorySystemView {
         addCardPanel.add(confirmAddCardButton, gbc);
 
 
+        // Adjust Card Count menu components
+        adjustCardCountList = new JList<>();
+        adjustCardCountList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        DefaultListCellRenderer dlcr = (DefaultListCellRenderer) adjustCardCountList.getCellRenderer();
+        dlcr.setHorizontalAlignment(SwingConstants.CENTER);
+
+        adjustCardCountScrollPane = new JScrollPane(adjustCardCountList);
+        adjustCardCountScrollPane.setPreferredSize(new Dimension(250, 250));
+
+        adjustCardCountFieldLabel = new JLabel("Enter count (+/-):");
+        adjustCardCountFieldLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+        adjustCardCountField = new JTextField(5);
+
+        adjustCardCountConfirmButton = new JButton("Confirm");
+        adjustCardCountConfirmButton.setActionCommand("CONFIRM_ADJUST_CARD_COUNT");
+
+        // Panel for Adjust Card Count menu
+        JPanel adjustCardCountPanel = new JPanel(new GridBagLayout());
+        adjustCardCountPanel.setBackground(Color.LIGHT_GRAY);
+
+        gbc.insets = new Insets(0, 0, 50, 50);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridheight = 3;
+        adjustCardCountPanel.add(adjustCardCountScrollPane, gbc);
+
+        gbc.insets = new Insets(70, 0, 0, 0);
+        gbc.gridx++;
+        gbc.gridheight = 1;
+        adjustCardCountPanel.add(adjustCardCountFieldLabel, gbc);
+
+        gbc.insets = new Insets(5, 0, 0, 0);
+        gbc.gridy++;
+        adjustCardCountPanel.add(adjustCardCountField, gbc);
+
+        gbc.insets = new Insets(0, 0, 100, 0);
+        gbc.gridy++;
+        adjustCardCountPanel.add(adjustCardCountConfirmButton, gbc);
+
+
         // Display Card menu components
         JLabel cardsDropDownLabel = new JLabel("Select Card");
         cardsDropDownLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
@@ -301,25 +359,20 @@ public class TradingCardInventorySystemView {
         // Initialize Binder Panels
         initManageBindersPanel();
         initSingleBinderPanel();
-        initBinderTypePanel();
+        initBinderTypesPanel();
 
         // Add all menu panels to the main content panel
         contentPanel.add(mainMenuPanel, "MAIN_MENU");
         contentPanel.add(addCardPanel, "ADD_CARD");
         contentPanel.add(manageBindersPanel, "MANAGE_BINDERS");
         contentPanel.add(singleBinderPanel, "SINGLE_BINDER");
-        contentPanel.add(binderTypePanel, "BINDER_TYPE");
+        contentPanel.add(binderTypesPanel, "BINDER_TYPE");
+        contentPanel.add(adjustCardCountPanel, "ADJUST_CARD_COUNT");
         contentPanel.add(displayCardPanel, "DISPLAY_CARD");
 
         contentPanelLayout = (CardLayout) contentPanel.getLayout();
 
-        // Resize buttons
-        JButton[] buttons = {addCardButton, manageBindersButton, manageDecksButton,
-                adjustCardCountButton, displayCardButton, displayCollectionButton, sellCardButton};
-        for(JButton button : buttons) {
-            button.setPreferredSize(new Dimension(200, 50));
-            button.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        }
+
 
         // Initialize main GUI window
         mainFrame.setSize(540, 699);
@@ -341,6 +394,21 @@ public class TradingCardInventorySystemView {
         sellCardButton.addActionListener(al);
 
         // Add Card menu buttons
+        // Common and uncommon cards cannot have variants
+        ItemListener disableVariantsIfSelected = ie -> {
+            boolean selected = (ie.getStateChange() == ItemEvent.SELECTED);
+
+            if (selected) {
+                normalButton.setSelected(true);
+            }
+
+            extendedArtButton.setEnabled(!selected);
+            fullArtButton.setEnabled(!selected);
+            altArtButton.setEnabled(!selected);
+        };
+
+        commonButton.addItemListener(disableVariantsIfSelected);
+        uncommonButton.addItemListener(disableVariantsIfSelected);
         commonButton.addActionListener(al);
         uncommonButton.addActionListener(al);
         rareButton.addActionListener(al);
@@ -366,19 +434,21 @@ public class TradingCardInventorySystemView {
         luxuryBinderButton.addActionListener(al);
         collectorBinderButton.addActionListener(al);
 
+        // Adjust Card Count
+        adjustCardCountConfirmButton.addActionListener(al);
+
         // Display Card
-        cardsDropDown.addActionListener(e -> {
+        cardsDropDown.addActionListener(_ -> {
             Card selected = (Card) cardsDropDown.getSelectedItem();
 
             if(selected != null) {
                 displayCardTextArea.setText(
-                        "Rarity: " + selected.getRarity().getName() +
-                        "\n\nVariant: " + selected.getVariant().getName() +
-                        "\n\nValue: " + selected.getValue().toString() +
-                        "\n\nCount: " + selected.getCount());
+                        "Rarity:  " + selected.getRarity().getName() +
+                        "\n\nVariant:  " + selected.getVariant().getName() +
+                        "\n\nValue:  $" + selected.getValue().toString() +
+                        "\n\nCount:  " + selected.getCount());
             }
-            }
-            );
+        });
     }
     public void setDocumentListener(DocumentListener dl) {
         // Add Card menu text fields
@@ -400,15 +470,8 @@ public class TradingCardInventorySystemView {
 
         return CardVariant.valueOf(selected.getActionCommand());
     }
-    public BigDecimal getAddCardValue() {
-        if(!valueField.getText().isEmpty()) {
-//            BigDecimal value = new BigDecimal(valueField.getText());
-//
-//            return value.setScale(2, RoundingMode.HALF_UP);
-            return new BigDecimal(valueField.getText());
-        } else {
-            return null;
-        }
+    public String getAddCardValue() {
+        return valueField.getText();
     }
 
     private void initManageBindersPanel() {
@@ -480,8 +543,9 @@ public class TradingCardInventorySystemView {
         returnButton.setText("Return to Binders");
     }
 
-    private void initBinderTypePanel() {
-        binderTypePanel = new JPanel(new GridBagLayout());
+    private void initBinderTypesPanel() {
+        binderTypesPanel = new JPanel(new GridBagLayout());
+        binderTypesPanel.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridwidth = 1;
         gbc.gridheight = 1;
@@ -507,21 +571,48 @@ public class TradingCardInventorySystemView {
 
         // Add to panel
         gbc.gridy = 0;
-        binderTypePanel.add(basicBinderButton, gbc);
+        binderTypesPanel.add(basicBinderButton, gbc);
         gbc.gridy++;
-        binderTypePanel.add(pauperBinderButton, gbc);
+        binderTypesPanel.add(pauperBinderButton, gbc);
         gbc.gridy++;
-        binderTypePanel.add(raresBinderButton, gbc);
+        binderTypesPanel.add(raresBinderButton, gbc);
         gbc.gridy++;
-        binderTypePanel.add(luxuryBinderButton, gbc);
+        binderTypesPanel.add(luxuryBinderButton, gbc);
         gbc.gridy++;
-        binderTypePanel.add(collectorBinderButton, gbc);
+        binderTypesPanel.add(collectorBinderButton, gbc);
     }
 
     public void displayBinderTypeMenu(){
         menuTitle.setText("Select Binder Type");
         contentPanelLayout.show(contentPanel, "BINDER_TYPE");
         returnButton.setText("Return to Main Menu");
+    }
+
+    public void displayAdjustCardCountMenu(List<Card> cards) {
+        List<String> cardListNames = new ArrayList<>();
+        for (Card card : cards) {
+            if(card.getCount() == 1) {
+                cardListNames.add(card.getName() + " - " + card.getCount() + " copy");
+            } else {
+                cardListNames.add(card.getName() + " - " + card.getCount() + " copies");
+            }
+        }
+
+        adjustCardCountList.setListData(cardListNames.toArray(new String[0]));
+        adjustCardCountList.setSelectedIndex(0);
+
+        menuTitle.setText("Adjust Card Count");
+        contentPanelLayout.show(contentPanel, "ADJUST_CARD_COUNT");
+        returnButton.setText("Return to Main Menu");
+    }
+    public String getAdjustCardCountName() {
+        String cardNameInList = adjustCardCountList.getSelectedValue();
+        int idx = cardNameInList.lastIndexOf(" - ");
+
+        return cardNameInList.substring(0, idx);
+    }
+    public String getAdjustCardCountNumber() {
+        return adjustCardCountField.getText();
     }
 
     public void displayCardDetailsMenu(List<Card> cards) {
@@ -535,14 +626,14 @@ public class TradingCardInventorySystemView {
         contentPanelLayout.show(contentPanel, "DISPLAY_CARD");
         returnButton.setText("Return to Main Menu");
     }
-    public String getSelectedCardName() {
-        return (String) cardsDropDown.getSelectedItem();
-    }
-    public void updateCardDetailsMenu(Card card) {
 
+    public void setCollectorMoneyLabel(BigDecimal collectorMoney) {
+        collectorMoneyLabel.setText("Collector Money: $" + collectorMoney);
     }
 
 
+
+    //TODO: delete all methods used for CLI
     public String promptForBinderName() {
         String name = JOptionPane.showInputDialog(
                 mainFrame,
@@ -568,10 +659,100 @@ public class TradingCardInventorySystemView {
     }
 
     public void displayErrorMessage(String message) {
-        JOptionPane.showMessageDialog(mainFrame, message, "Message", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(mainFrame, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
+    public Card showCardSelectionDialog(List<Card> cards) {
+        // Create a panel to hold the card list
+        JPanel panel = new JPanel(new BorderLayout());
 
+        // Create a list model and populate it with card names
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        for (Card card : cards) {
+            listModel.addElement(card.getName() + " [" + card.getRarity() + "] - $" + card.getValue());
+        }
+
+        // Create the JList with the model
+        JList<String> cardList = new JList<>(listModel);
+        cardList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        // Add the list to a scroll pane
+        JScrollPane scrollPane = new JScrollPane(cardList);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        // Show the dialog
+        int result = JOptionPane.showConfirmDialog(
+                mainFrame,
+                panel,
+                "Select Card to Sell",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        // Return the selected card if user clicked OK
+        if (result == JOptionPane.OK_OPTION && !cardList.isSelectionEmpty()) {
+            return cards.get(cardList.getSelectedIndex());
+        }
+        return null;
+    }
+
+    public void displayCollectionGUI(List<Card> cards){
+        List<Card> sortedCards = new ArrayList<>();
+        sortedCards.sort(Comparator.comparing(Card::getName));//sort cards alphabetically by name
+
+        JPanel panel = new JPanel(new BorderLayout());
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+
+        for(Card card : sortedCards){
+            listModel.addElement(card.getName() + "(x" + card.getCount() + ")");
+        }
+
+        JList<String> cardList= new JList<>(listModel);
+
+        cardList.setFont(new Font ("Tahoma", Font.PLAIN, 16));
+        cardList.setFixedCellHeight(24);
+
+        JScrollPane scrollPane = new JScrollPane(cardList);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        JOptionPane.showMessageDialog(mainFrame, panel, "Your Collection", JOptionPane.PLAIN_MESSAGE);
+     }
+
+    public boolean confirmActionGUI(String message) {
+        int result = JOptionPane.showConfirmDialog(
+                mainFrame,
+                message,
+                "Confirm",
+                JOptionPane.YES_NO_OPTION
+        );
+        return result == JOptionPane.YES_OPTION;
+    }
+
+    public int promptForCardAdjustmentGUI() {
+        while (true) {  // Keep asking until valid input or cancel
+            String input = JOptionPane.showInputDialog(
+                    mainFrame,
+                    "Enter amount to increase count:",
+                    "Increase Count",
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (input == null) {
+                return 0;
+            }
+
+            try {
+                int value = Integer.parseInt(input.trim());
+                if (value <= 0) {
+                    displayErrorMessage("Please enter a positive number");
+                    continue;
+                }
+                return value;
+            } catch (NumberFormatException e) {
+                displayErrorMessage("Invalid input - please enter digits only");
+            }
+        }
+    }
 
     /**
      * Prompts user to enter a menu choice.
@@ -651,7 +832,6 @@ public class TradingCardInventorySystemView {
      * @param hasDecks whether any decks exist
      */
     public void displayMainMenu(boolean hasCards, boolean hasBinders, boolean hasDecks) {
-        hasCards = true;
         System.out.println("\n=== Trading Card Inventory System ===");
         System.out.println("1. Add a Card");
 

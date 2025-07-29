@@ -30,22 +30,45 @@ public class TradingCardInventorySystemController implements ActionListener, Doc
             case "Return to Main Menu" -> view.displayMainMenu(model.hasCards(), model.hasBinders(), model.hasDecks());
             case "Exit" -> System.exit(0);
             case "Add Card" -> view.displayAddCardMenu();
+            case "SELL_CARD" -> handleSellCard();
             case "CONFIRM_ADD_CARD" -> {
-                String cardName = view.getAddCardName();
-                CardRarity rarity = view.getAddCardRarity();
-                CardVariant variant = view.getAddCardVariant();
-                BigDecimal value = view.getAddCardValue();
+                try {
+                    String cardName = view.getAddCardName();
+                    CardRarity rarity = view.getAddCardRarity();
+                    CardVariant variant = view.getAddCardVariant();
+                    BigDecimal value = new BigDecimal(view.getAddCardValue());
 
-                if(cardName.isEmpty()) {
-                    view.displayErrorMessage("Card name cannot be empty.");
-                } else if(value == null || value.compareTo(BigDecimal.ZERO) <= 0) {
-                    view.displayErrorMessage("Card value must be greater than zeroooooooo.");
-                } else {
-                    model.addCardToCollection(cardName, rarity, variant, value);
-                    view.displayMessage("Card added successfully!");
+                    if(cardName.isEmpty()) {
+                        view.displayErrorMessage("Card name cannot be empty.");
+                    } else if(value.compareTo(BigDecimal.ZERO) <= 0) {
+                        view.displayErrorMessage("Card value must be greater than zero.");
+                    } else {
+                        Card existingCard = model.getCardFromCollection(cardName);
 
-                    view.displayMainMenu(model.hasCards(), model.hasBinders(), model.hasDecks());
+                        if(existingCard != null &&
+                            existingCard.getRarity() == rarity &&
+                            existingCard.getVariant() == variant &&
+                            existingCard.getValue().compareTo(value) == 0) {
+
+                            if(view.confirmActionGUI("This card already exists. Increase count instead?")) {
+                                int increase = view.promptForCardAdjustmentGUI();
+
+                                if(increase > 0) {
+                                    model.adjustCardCount(existingCard, increase);
+                                    view.displayMessage("Count increased by " + increase);
+                                }
+                            }
+                        } else {
+                            model.addCardToCollection(cardName, rarity, variant, value);
+                            view.displayMessage("Card added successfully!");
+                        }
+
+                        view.displayMainMenu(model.hasCards(), model.hasBinders(), model.hasDecks());
+                    }
+                } catch (NumberFormatException e) {
+                    view.displayErrorMessage("Invalid card value.");
                 }
+
             }
             case "Create a new Binder" -> view.displayBinderTypeMenu();
             case "CREATE_BASIC_BINDER" -> createBinder(1);
@@ -72,7 +95,24 @@ public class TradingCardInventorySystemController implements ActionListener, Doc
                     model.removeCardFromBinder(binder, card);
                 }
             }
+            case "Adjust Card Count" -> view.displayAdjustCardCountMenu(model.getCardCollection());
+            case "CONFIRM_ADJUST_CARD_COUNT" -> {
+                try {
+                    int cardCount = Integer.parseInt(view.getAdjustCardCountNumber());
+                    Card card = model.getCardFromCollection(view.getAdjustCardCountName());
+
+                    if(model.adjustCardCount(card, cardCount)) {
+                        view.displayMessage("Card count adjusted successfully!");
+                        view.displayMainMenu(model.hasCards(), model.hasBinders(), model.hasDecks());
+                    } else {
+                        view.displayErrorMessage("Adjustment cannot set card count below zero.");
+                    }
+                } catch(NumberFormatException e) {
+                    view.displayErrorMessage("Invalid card count adjustment value.");
+                }
+            }
             case "Display Card" -> view.displayCardDetailsMenu(model.getCardCollection());
+            case "DISPLAY_COLLECTION" -> view.displayCollectionGUI(model.getCardCollection());
         }
     }
 
@@ -97,6 +137,41 @@ public class TradingCardInventorySystemController implements ActionListener, Doc
             } else {
                 view.displayError("Binder creation failed (name exists)");
             }
+        }
+    }
+    private void handleSellCard() {
+        List<Card> collection = model.getCardCollection();
+
+        if (collection.isEmpty()) {
+            view.displayErrorMessage("No cards in collection to sell.");
+            return;
+        }
+
+        // Show card selection dialog
+        Card selectedCard = view.showCardSelectionDialog(collection);
+
+        if (selectedCard == null) {
+            return; // User cancelled
+        }
+
+        // Check if card is in a binder/deck (non-sellable)
+        if (!model.isSellableCard(selectedCard)) {
+            view.displayErrorMessage("Cannot sell card - it's in a binder or deck.");
+            return;
+        }
+
+        // Confirm sale
+        if (!view.confirmActionGUI("Sell 1 " + selectedCard.getName() + " for $" + selectedCard.getValue() + "?")) {
+            return;
+        }
+
+        // Execute sale
+        if (model.sellCard(selectedCard)) {
+            view.setCollectorMoneyLabel(model.getCollectorMoney());
+
+            view.displayMessage("Card sold successfully!");
+        } else {
+            view.displayErrorMessage("Failed to sell card.");
         }
     }
     /**

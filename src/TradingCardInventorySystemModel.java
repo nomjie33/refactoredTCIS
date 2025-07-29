@@ -447,15 +447,19 @@ public class TradingCardInventorySystemModel {
     public boolean sellCard(Card card) {
         if (cardCollection.contains(card)) {
             Card collectionCard = cardCollection.get(cardCollection.indexOf(card));
+
             if (collectionCard.getCount() > 0) {
                 addMoney(collectionCard.getValue()); // Add card value to collector's money
                 collectionCard.setCount(collectionCard.getCount() - 1);
+
                 if (collectionCard.getCount() == 0) {
                     cardCollection.remove(collectionCard);
                 }
+
                 return true;
             }
         }
+
         return false;
     }
 
