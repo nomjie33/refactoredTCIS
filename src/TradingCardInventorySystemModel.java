@@ -312,20 +312,17 @@ public class TradingCardInventorySystemModel {
      */
     private boolean shouldRemoveFromCollection(Card card) {
         if (cardCollection.contains(card) && cardCollection.get(cardCollection.indexOf(card)).getCount() > 1) {
-            System.out.println("Copy found in collection.  NOT DELETING FROM COLLECTION");
             return false;
         }
 
         for (Binder b : binders.values()) {
             if (b.containsCard(card)) {
-                System.out.println("Copy found in binder.  NOT DELETING FROM COLLECTION");
                 return false;
             }
         }
 
         for (Deck d : decks.values()) {
             if (d.containsCard(card)) {
-                System.out.println("Copy found in deck.  NOT DELETING FROM COLLECTION");
                 return false;
             }
         }
@@ -550,27 +547,9 @@ public class TradingCardInventorySystemModel {
             return false;
         }
 
-        SellableBinder sellable = (SellableBinder) binder;
-        BigDecimal price = sellable.calculateValue();
-
-        // Process each card in the binder
-        new ArrayList<>(binder.getCards()).forEach(card -> {
-            // Remove from binder first
-            binder.removeCard(card);
-
-            // Check if card exists in collection
-            if (cardCollection.contains(card)) {
-                Card collectionCard = cardCollection.get(cardCollection.indexOf(card));
-
-                // Only remove from collection if count would reach zero
-                if (collectionCard.getCount() == 0) {
-                    cardCollection.remove(collectionCard);
-                }
-            }
-        });
-
-        // Complete the sale
+        BigDecimal price = ((SellableBinder) binder).calculateValue();
         collectorMoney = collectorMoney.add(price);
+
         binders.remove(binder.getName());
 
         return true;
@@ -589,21 +568,8 @@ public class TradingCardInventorySystemModel {
         BigDecimal value = ((SellableDeck)deck).calculateValue();
         collectorMoney = collectorMoney.add(value);
 
-        // Remove cards (same logic as binder selling)
-        new ArrayList<>(deck.getCards()).forEach(card -> {
-            deck.removeCard(card);
-
-            if (cardCollection.contains(card)) {
-                Card collectionCard = cardCollection.get(cardCollection.indexOf(card));
-                if (collectionCard.getCount() == 0) {
-                    cardCollection.remove(collectionCard);
-                } else {
-                    collectionCard.setCount(collectionCard.getCount() - 1);
-                }
-            }
-        });
-
         decks.remove(deck.getName());
+
         return true;
     }
     /**

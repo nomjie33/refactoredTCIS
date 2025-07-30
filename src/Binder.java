@@ -36,11 +36,14 @@ public abstract class Binder extends CardHolder {
     public boolean canAddCard(Card card) {
         return true; // Default: all cards allowed
     }
-
+    /*Returns the name of the binder
+    * @return name the binder name
+    * */
     public String getName() {
         return name;
     }
-
+    /*Checks if a binder is sellable depending on the BinderType
+    * @return boolean value if binder is sellable*/
     public boolean isSellable() {
         return (this instanceof PauperBinder) ||
                 (this instanceof RaresBinder) ||

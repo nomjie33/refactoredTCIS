@@ -95,6 +95,8 @@ public class TradingCardInventorySystemController implements ActionListener, Doc
 
                 if (index >= 0) {
                     Binder binder = model.getBinder(index);
+
+                    view.updateBinderCardsList(binder.getCards());
                     view.displaySingleBinderMenu(binder.getName(), model.isSellableBinder(binder));
                 }
             }
@@ -186,6 +188,8 @@ public class TradingCardInventorySystemController implements ActionListener, Doc
 
                 if (index >= 0) {
                     Deck deck = model.getDeck(index);
+
+                    view.updateDeckCardsList(deck.getCards());
                     view.displaySingleDeckMenu(deck.getName(), model.isSellableDeck(deck));
                 }
             }
@@ -419,10 +423,17 @@ public class TradingCardInventorySystemController implements ActionListener, Doc
             if (model.createDeck(name, type)) {
                 view.displayManageDecksMenu(model.getDecks());
             } else {
-                view.displayErrorMessage("That binder already exists.");
+                view.displayErrorMessage("That deck already exists.");
             }
         }
     }
+    /**
+     * Handles the logic for selling a deck. Validates that the given deck is sellable and not empty,
+     * calculates its value, and prompts the user for confirmation. If confirmed, attempts the sale
+     * and updates the collector's money and binder list in the view.
+     *
+     * @param deck the {@code Deck} object to be sold
+     */
     private void handleSellDeck(Deck deck) {
         // Validate deck can be sold
         if (!model.isSellableDeck(deck)) {
@@ -442,9 +453,9 @@ public class TradingCardInventorySystemController implements ActionListener, Doc
         if (view.confirmAction("Sell '" + deck.getName() + "' for $" + price + "?")) {
             if (model.sellDeck(deck)) {
                 view.setCollectorMoneyLabel(model.getCollectorMoney());
-                view.displayMessage("Binder sold for $" + price);
+                view.displayMessage("Deck sold for $" + price);
 
-                view.displayManageBindersMenu(model.getBinders());
+                view.displayManageDecksMenu(model.getDecks());
             } else {
                 view.displayErrorMessage("Failed to complete sale");
             }

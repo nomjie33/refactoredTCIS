@@ -741,10 +741,12 @@ public class TradingCardInventorySystemView {
         viewDeckCardButton.setActionCommand("VIEW_DECK_CARD");
         addCardToDeckButton.setActionCommand("ADD_CARD_TO_DECK");
         removeCardFromDeckButton.setActionCommand("REMOVE_CARD_FROM_DECK");
+        sellDeckButton.setActionCommand("SELL_DECK");
         deleteDeckButton.setActionCommand("DELETE_DECK");
 
         singleDeckButtonsPanel.add(viewDeckCardButton);
         singleDeckButtonsPanel.add(addCardToDeckButton);
+        singleDeckButtonsPanel.add(removeCardFromDeckButton);
         singleDeckButtonsPanel.add(sellDeckButton);
         singleDeckButtonsPanel.add(deleteDeckButton);
 
