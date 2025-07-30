@@ -16,11 +16,18 @@ public class Deck extends CardHolder {
         this.name = name;
         this.sellable = sellable;
     }
-
+    /**
+     * Checks if this deck is sellable.
+     * @return true if the deck is sellable
+     */
     public boolean isSellable() {
         return sellable;
     }
-
+    /**
+     * Adds a card to the deck if there's space.
+     * @param card the card to add
+     * @return true if added successfully, false if deck is full
+     */
     @Override
     public boolean addCard(Card card) {
         if (getCardsCount() >= MAX_CARD_COUNT) {

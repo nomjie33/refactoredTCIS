@@ -20,7 +20,7 @@ public class TradingCardInventorySystemModel {
         this.cardCollection = new ArrayList<>();
         this.binders = new LinkedHashMap<>();
         this.decks = new LinkedHashMap<>();
-        this.collectorMoney = BigDecimal.ZERO;
+        this.collectorMoney = new BigDecimal("0.00");
     }
     /**
      * Checks if card collection has any cards.
@@ -133,32 +133,22 @@ public class TradingCardInventorySystemModel {
      * Creates a new binder with the given name.
      *
      * @param name The name of the binder.
+     * @return true if the binder was created successfully, false otherwise.
      */
     // Update createBinder to use subclass instances directly
-    public boolean createBinder(String name, int binderType) {
-        if (binders.containsKey(name)) {
+    public boolean createBinder(String name, BinderType type) {
+        if(binders.containsKey(name)) {
             return false;
         }
 
-        switch(binderType) {
-            case 1:
-                binders.put(name, new NonCuratedBinder(name));
-                break;
-            case 2:
-                binders.put(name, new PauperBinder(name));
-                break;
-            case 3:
-                binders.put(name, new RaresBinder(name));
-                break;
-            case 4:
-                binders.put(name, new LuxuryBinder(name));
-                break;
-            case 5:
-                binders.put(name, new CollectorBinder(name));
-                break;
-            default:
-                return false;
+        switch(type) {
+            case BinderType.BASIC -> binders.put(name, new NonCuratedBinder(name));
+            case BinderType.PAUPER -> binders.put(name, new PauperBinder(name));
+            case BinderType.RARES -> binders.put(name, new RaresBinder(name));
+            case BinderType.LUXURY -> binders.put(name, new LuxuryBinder(name));
+            case BinderType.COLLECTOR -> binders.put(name, new CollectorBinder(name));
         }
+
         return true;
     }
     /**
@@ -174,10 +164,23 @@ public class TradingCardInventorySystemModel {
             return null;
         }
     }
+    /**
+     * Retrieves a binder by name.
+     *
+     * @param name The name of the binder.
+     * @return The binder if found, null otherwise.
+     */
     public Binder getBinder(String name) {
         return binders.get(name);
     }
-
+    /**
+     * Returns the list of all binders in the system.
+     *
+     * @return A list of binders.
+     */
+    public List<Binder> getBinders() {
+        return new ArrayList<>(binders.values());
+    }
     /**
      * Returns a list of all binder names.
      *
@@ -232,22 +235,40 @@ public class TradingCardInventorySystemModel {
         return true;
     }
     /**
-     * Removes card from the specified binder and returns it to the collection.
+     * Removes a card from the deck and returns it to the collection.
      * Checks first if the collection has the card; if the collection does,
      * then it increments the count of the card in the collection instead.
      *
-     * @param binder The binder to remove card from.
-     * @param card The card to remove in binder.
+     * @param binder The binder to remove the card from
+     * @param card The card to remove
+     * @return true if removal was successful, false otherwise
      */
-    public void removeCardFromBinder(Binder binder, Card card) {
-        binder.removeCard(card);
+    public boolean removeCardFromBinder(Binder binder, Card card) {
+        // First check if the binder actually contains the card
+        if (!binder.getCards().contains(card)) {
+            return false;
+        }
 
-        if(cardCollection.contains(card)) {
-            cardCollection.get(cardCollection.indexOf(card)).setCount
-                    (cardCollection.get(cardCollection.indexOf(card)).getCount() + 1);
-        } else {
-            card.setCount(1);
-            cardCollection.add(card);
+        // Remove from binder
+        boolean removedFromBinder = binder.removeCard(card);
+        if (!removedFromBinder) {
+            return false;
+        }
+
+        // Add to collection or increment count
+        try {
+            if (cardCollection.contains(card)) {
+                int index = cardCollection.indexOf(card);
+                Card collectionCard = cardCollection.get(index);
+                collectionCard.setCount(collectionCard.getCount() + 1);
+            } else {
+                card.setCount(1);
+                cardCollection.add(card);
+            }
+            return true;
+        } catch (Exception e) {
+            // If any error occurs during collection update, return false
+            return false;
         }
     }
     /**
@@ -266,34 +287,35 @@ public class TradingCardInventorySystemModel {
             return false;
         }
 
-        // Add incoming card (set count to 0 as per original logic)
         incoming.setCount(0);
         addCardToCollection(incoming);
 
-        // Validate incoming card can be added to binder
         if (!binder.addCard(incoming)) {
             return false;
         }
 
-        // Remove outgoing card from binder
         binder.removeCard(outgoing);
 
-        // Check if we should remove outgoing card from collection
         if (shouldRemoveFromCollection(outgoing)) {
             cardCollection.remove(outgoing);
         }
 
         return true;
     }
-
+    /**
+     * Checks if a card can be safely removed from the main collection.
+     * A card can only be removed if it's not the last copy in the system.
+     *
+     * @param card the card to check for removal
+     * @return true if the card can be removed (no other copies exist),
+     *         false if copies exist in collection/binders/decks
+     */
     private boolean shouldRemoveFromCollection(Card card) {
-        // Don't remove if card still has copies in collection
         if (cardCollection.contains(card) && cardCollection.get(cardCollection.indexOf(card)).getCount() > 1) {
             System.out.println("Copy found in collection.  NOT DELETING FROM COLLECTION");
             return false;
         }
 
-        // Check all binders and decks for other copies
         for (Binder b : binders.values()) {
             if (b.containsCard(card)) {
                 System.out.println("Copy found in binder.  NOT DELETING FROM COLLECTION");
@@ -308,7 +330,6 @@ public class TradingCardInventorySystemModel {
             }
         }
 
-        // Only remove if no copies exist elsewhere
         return true;
     }
 
@@ -317,18 +338,24 @@ public class TradingCardInventorySystemModel {
      * Creates a new deck with the given name.
      *
      * @param name The name of the deck.
+     * @return true if the deck was created successfully, false otherwise.
      */
-    public void createDeck(String name, boolean sellable) {
-        if (sellable) {
-            decks.put(name, new SellableDeck(name));
-        } else {
-            decks.put(name, new NormalDeck(name));
+    public boolean createDeck(String name, DeckType type) {
+        if(decks.containsKey(name)) {
+            return false;
         }
+
+        switch(type) {
+            case DeckType.NORMAL -> decks.put(name, new NormalDeck(name));
+            case DeckType.SELLABLE -> decks.put(name, new SellableDeck(name));
+        }
+
+        return true;
     }
     /**
      * Retrieves a deck by index
      *
-     * @param index The name of the deck.
+     * @param index The index of the deck.
      * @return The deck if found, null otherwise.
      */
     public Deck getDeck(int index) {
@@ -337,6 +364,23 @@ public class TradingCardInventorySystemModel {
         } else {
             return null;
         }
+    }
+    /**
+     * Retrieves a deck by name.
+     *
+     * @param name The name of the deck.
+     * @return The binder if found, null otherwise.
+     */
+    public Deck getDeck(String name) {
+        return decks.get(name);
+    }
+    /**
+     * Returns the list of all decks in the system.
+     *
+     * @return A list of decks
+     */
+    public List<Deck> getDecks() {
+        return new ArrayList<>(decks.values());
     }
     /**
      * Returns a list of all deck names
@@ -389,12 +433,10 @@ public class TradingCardInventorySystemModel {
      */
     public boolean addCardToDeck(Deck deck, Card card) {
         if(card.getCount() <= 0) {
-            System.err.println("Card count = 0, cannot add card.");
             return false;
         }
 
         if(isDeckCardDupe(deck, card)) {
-            System.out.println("Card is already in the deck.");
             return false;
         }
 
@@ -411,16 +453,35 @@ public class TradingCardInventorySystemModel {
      *
      * @param deck The deck to remove the card from.
      * @param card The card to remove.
+     * @return true if removal was successful, false otherwise
      */
-    public void removeCardFromDeck(Deck deck, Card card) {
-        deck.removeCard(card);
+    public boolean removeCardFromDeck(Deck deck, Card card) {
+        // First check if the deck actually contains the card
+        if (!deck.getCards().contains(card)) {
+            return false;
+        }
 
-        if(cardCollection.contains(card)) {
-            cardCollection.get(cardCollection.indexOf(card)).setCount
-                    (cardCollection.get(cardCollection.indexOf(card)).getCount() + 1);
-        } else {
-            card.setCount(1);
-            cardCollection.add(card);
+        // Remove from deck
+        boolean removedFromDeck = deck.removeCard(card);
+        if (!removedFromDeck) {
+            return false;
+        }
+
+        // Add to collection or increment count
+        try {
+            if (cardCollection.contains(card)) {
+                int index = cardCollection.indexOf(card);
+                Card collectionCard = cardCollection.get(index);
+
+                collectionCard.setCount(collectionCard.getCount() + 1);
+            } else {
+                card.setCount(1);
+                cardCollection.add(card);
+            }
+            return true;
+        } catch (Exception e) {
+            // If any error occurs during collection update, return false
+            return false;
         }
     }
     /**
@@ -462,17 +523,23 @@ public class TradingCardInventorySystemModel {
 
         return false;
     }
-
+    /**
+     * Checks if a card can be sold (has at least one copy).
+     * @param card the card to check
+     * @return true if card has count > 0, false otherwise
+     */
     public boolean isSellableCard(Card card){
         return card.getCount() > 0;
     }
-
+    /**
+     * Checks if a binder is sellable (based on its type).
+     * @param binder the binder to check
+     * @return true if binder is sellable type, false otherwise
+     */
     public boolean isSellableBinder(Binder binder) {
-        // Only check the binder type, not emptiness
         return binder.isSellable();
     }
 
-    // Add method to sell binder
     /**
      * Sells a binder and removes its cards from collection if count is zero
      * @param binder The binder to sell
@@ -484,7 +551,7 @@ public class TradingCardInventorySystemModel {
         }
 
         SellableBinder sellable = (SellableBinder) binder;
-        BigDecimal price = sellable.calculatePrice();
+        BigDecimal price = sellable.calculateValue();
 
         // Process each card in the binder
         new ArrayList<>(binder.getCards()).forEach(card -> {
@@ -505,10 +572,17 @@ public class TradingCardInventorySystemModel {
         // Complete the sale
         collectorMoney = collectorMoney.add(price);
         binders.remove(binder.getName());
+
         return true;
     }
-
-    // Add deck selling logic
+    /**
+     * Sells a deck and updates the collector's money.
+     * Removes all cards from the deck and adjusts collection counts.
+     *
+     * @param deck the deck to sell (must be sellable and have value > 0)
+     * @return true if sale was successful, false otherwise
+     * @throws ClassCastException if deck is not a SellableDeck
+     */
     public boolean sellDeck(Deck deck) {
         if (!deck.isSellable() || ((SellableDeck) deck).calculateValue().compareTo(BigDecimal.ZERO) <= 0) return false;
 
@@ -518,6 +592,7 @@ public class TradingCardInventorySystemModel {
         // Remove cards (same logic as binder selling)
         new ArrayList<>(deck.getCards()).forEach(card -> {
             deck.removeCard(card);
+
             if (cardCollection.contains(card)) {
                 Card collectionCard = cardCollection.get(cardCollection.indexOf(card));
                 if (collectionCard.getCount() == 0) {
@@ -531,9 +606,14 @@ public class TradingCardInventorySystemModel {
         decks.remove(deck.getName());
         return true;
     }
-
+    /**
+     * Checks if a deck can be sold.
+     *
+     * @param deck the deck to check
+     * @return true if deck is marked sellable and contains cards,
+     *         false otherwise
+     */
     public boolean isSellableDeck(Deck deck) {
         return deck.isSellable() && !deck.getCards().isEmpty();
     }
-
 }

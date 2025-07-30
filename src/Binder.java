@@ -1,10 +1,8 @@
-import java.math.BigDecimal;
-
 /**
  * Base Binder class (extending CardHolder) with common binder functionality.
  * Now includes validation hooks for subclasses.
  */
-public class Binder extends CardHolder {
+public abstract class Binder extends CardHolder {
     public static final int MAX_CARD_COUNT = 20;
     private final String name;
 
@@ -37,14 +35,6 @@ public class Binder extends CardHolder {
      */
     public boolean canAddCard(Card card) {
         return true; // Default: all cards allowed
-    }
-
-    /**
-     * For sellable binders - calculates sale price
-     * @return price or null if not sellable
-     */
-    public BigDecimal calculatePrice() {
-        return null; // Default: not sellable
     }
 
     public String getName() {

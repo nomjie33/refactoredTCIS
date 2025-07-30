@@ -65,12 +65,15 @@ public abstract class CardHolder {
 
     /**
      * Returns the number of cards currently in the holder.
-     * @return the card count
+     * @return boolean value if cardholder is empty
      */
     public int getCardsCount() {
         return cards.size();
     }
-
+    /**
+     * Returns if cardholder is empty
+     * @return the card count
+     */
     public boolean isEmpty() {
         return cards.isEmpty();
     }
@@ -81,6 +84,6 @@ public abstract class CardHolder {
      * @return true if card is allowed (override in subclasses)
      */
     public boolean canAddCard(Card card) {
-        return true; // Default: all cards allowed
+        return true;
     }
 }

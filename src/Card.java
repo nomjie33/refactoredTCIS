@@ -5,7 +5,7 @@ import java.util.Objects;
  * Represents a trading card with a name, rarity, variant, value, and count.
  * The card's value is automatically adjusted based on its variant.
  */
-public class Card {
+public class Card implements Sellable {
     private final String name;
     private final CardRarity rarity;
     private final CardVariant variant;
@@ -49,6 +49,15 @@ public class Card {
             case ALT_ART -> this.value = (value.add(value.multiply(new BigDecimal("2.00")))).setScale(2, RoundingMode.HALF_UP);
             default -> this.value = value.setScale(2, RoundingMode.HALF_UP);
         }
+    }
+    /**
+     * Returns the monetary value of this card including variant adjustments.
+     *
+     * @return the calculated value of this card
+     */
+    @Override
+    public BigDecimal calculateValue() {
+        return this.value;
     }
     /**
      * Checks equality based on name (case-insensitive), rarity, variant, and value.
